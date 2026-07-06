@@ -14,9 +14,7 @@ type ProductCardProps = {
   variant?: ProductCardVariant
 }
 
-function ProductCardInner({ product, variant = 'secondary' }: ProductCardProps) {
-  const isFeatured = variant === 'featured'
-
+function ProductCardInner({ product }: ProductCardProps) {
   return (
     <motion.article
       variants={cardRevealVariants}
@@ -24,7 +22,7 @@ function ProductCardInner({ product, variant = 'secondary' }: ProductCardProps) 
       whileInView="visible"
       viewport={{ once: true, amount: 0.25 }}
       whileHover={{ y: -4, scale: 1.005, boxShadow: '0 28px 70px rgba(15, 23, 42, 0.12)' }}
-      className={`group relative overflow-hidden ds-card bg-[color:var(--color-card)]/95 p-6 transition-all duration-300 ${isFeatured ? 'lg:col-span-2 lg:row-span-2' : ''}`}
+      className="group relative min-h-full overflow-hidden rounded-[1.75rem] border border-[color:var(--color-border)] bg-[color:var(--color-card)]/95 p-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)] transition-all duration-300"
     >
       <div className="absolute inset-0 bg-[linear-gradient(140deg,rgba(255,255,255,0.85),transparent_45%,rgba(255,255,255,0.22))]" />
       <div className="relative z-10 flex h-full flex-col gap-5">

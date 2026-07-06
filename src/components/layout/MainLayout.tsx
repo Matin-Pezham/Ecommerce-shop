@@ -21,7 +21,7 @@ function MainLayoutInner() {
   return (
     <AppShell>
       <Navbar isScrolled={isScrolled} />
-      <main>
+      <main className="pt-4 sm:pt-6 lg:pt-8">
         <Container>
           <AnimatePresence mode="wait" initial={false}>
             <PageWrapper key={location.pathname} className="w-full">

@@ -59,10 +59,10 @@ export function useGSAPScrollStory(): UseGSAPScrollStoryResult {
         scrollTrigger: {
           trigger: containerRef.current,
           start: 'top top',
-          end: '+=2000',
+          end: '+=1400',
           scrub: 1,
           pin: true,
-          pinSpacing: true,
+          pinSpacing: false,
           anticipatePin: 1,
           invalidateOnRefresh: true,
           onUpdate: (self: any) => {

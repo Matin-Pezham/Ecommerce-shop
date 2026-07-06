@@ -29,7 +29,7 @@ export function StoryUIOverlay({ phase }: StoryUIOverlayProps) {
           <span className="rounded-full border border-[color:var(--color-border)] bg-white/80 px-5 py-3 text-sm font-semibold text-[color:var(--color-primary)] backdrop-blur-xl">
             {t('product.priceFrom', { price: '$1,290' })}
           </span>
-          <a href="#" className="pointer-events-auto rounded-full bg-[color:var(--color-primary)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_20px_60px_rgba(17,24,39,0.16)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(17,24,39,0.18)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)]">
+          <a href="#" className="pointer-events-auto rounded-full btn-cta px-6 py-3.5 text-sm font-semibold shadow-[0_20px_60px_rgba(17,24,39,0.16)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(17,24,39,0.18)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
             {t('product.exploreEdition')}
           </a>
         </div>

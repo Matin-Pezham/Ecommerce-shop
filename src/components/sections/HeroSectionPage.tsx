@@ -11,10 +11,10 @@ export function HeroSectionPage() {
       <SectionWrapper as="div" size="xl" background="default" className="pb-0">
         <HeroSection />
       </SectionWrapper>
-      <SectionWrapper as="div" size="md" background="default" className="pt-0 pb-0">
+      <SectionWrapper id="experience" as="div" size="md" background="default" className="pt-0 pb-0">
         <ScrollStorySection />
       </SectionWrapper>
-      <SectionWrapper as="div" size="sm" background="default" className="pt-0 pb-0">
+      <SectionWrapper id="story" as="div" size="sm" background="default" className="pt-0 pb-0">
         <ProductAutoMotionSection />
       </SectionWrapper>
       <SectionWrapper as="div" size="md" background="surface" className="pt-0 pb-0">

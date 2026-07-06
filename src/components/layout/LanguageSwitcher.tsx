@@ -1,17 +1,17 @@
 import { useTranslation } from '@/i18n'
 
 export function LanguageSwitcher() {
-  const { locale, setLocale, t } = useTranslation()
+  const { locale, setLocale, t, isRtl } = useTranslation()
 
   return (
-    <div className="flex items-center gap-2">
+    <div className={`flex items-center gap-1 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/70 p-1 ${isRtl ? 'flex-row-reverse' : ''}`}>
       <button
         type="button"
         onClick={() => setLocale('en')}
-        className={`rounded-full px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.32em] transition ${
+        className={`rounded-full px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.24em] transition ${
           locale === 'en'
-            ? 'bg-[color:var(--color-primary)] text-white shadow-[0_10px_25px_rgba(59,130,246,0.2)]'
-            : 'bg-[color:var(--color-surface)] text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-primary-soft)]'
+            ? 'btn-cta text-white shadow-[0_8px_20px_rgba(15,23,42,0.12)]'
+            : 'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-card)]'
         }`}
       >
         {t('lang.en')}
@@ -19,10 +19,10 @@ export function LanguageSwitcher() {
       <button
         type="button"
         onClick={() => setLocale('fa')}
-        className={`rounded-full px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.32em] transition ${
+        className={`rounded-full px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.24em] transition ${
           locale === 'fa'
-            ? 'bg-[color:var(--color-primary)] text-white shadow-[0_10px_25px_rgba(59,130,246,0.2)]'
-            : 'bg-[color:var(--color-surface)] text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-primary-soft)]'
+            ? 'btn-cta text-white shadow-[0_8px_20px_rgba(15,23,42,0.12)]'
+            : 'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-card)]'
         }`}
       >
         {t('lang.fa')}

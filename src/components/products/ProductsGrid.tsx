@@ -16,16 +16,18 @@ export function ProductsGrid({ products }: ProductsGridProps) {
     }))
   }, [products])
 
+  const gridClassName = products.length <= 4 ? 'grid gap-5 md:grid-cols-2 xl:grid-cols-4' : 'grid gap-5 md:grid-cols-2 xl:grid-cols-3'
+
   return (
     <motion.div
-      className="grid gap-5 md:grid-cols-2 xl:grid-cols-4"
+      className={gridClassName}
       variants={sectionRevealVariants}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.12 }}
     >
       {layoutProducts.map(({ product, variant }, index) => {
-        const className = index === 0 ? 'md:col-span-2 md:row-span-2 xl:col-span-2 xl:row-span-2' : ''
+        const className = index === 0 ? 'md:col-span-2 md:row-span-2 xl:col-span-2 xl:row-span-2' : 'md:col-span-1 xl:col-span-1'
         return (
           <div key={product.id} className={className}>
             <ProductCard product={product} variant={variant as ProductCardVariant} />

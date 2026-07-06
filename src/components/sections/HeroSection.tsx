@@ -65,7 +65,7 @@ export function HeroSection() {
 
   return (
     <section className="relative isolate overflow-hidden bg-[color:var(--color-background)]">
-      <div className="sticky top-0 z-20 w-full border-b border-white/10 bg-[linear-gradient(90deg,rgba(236,72,153,0.18),rgba(59,130,246,0.16),rgba(16,185,129,0.14))] bg-opacity-90 px-4 py-3 backdrop-blur-xl">
+      <div className="relative z-20 w-full border-b border-white/10 bg-[linear-gradient(90deg,rgba(236,72,153,0.18),rgba(59,130,246,0.16),rgba(16,185,129,0.14))] bg-opacity-90 px-4 py-3 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-white/90">
           <span>{t('hero.launchEdition')}</span>
           <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1">{t('hero.livePreview')}</span>
@@ -93,12 +93,12 @@ export function HeroSection() {
       </motion.div>
 
       <motion.div
-        className="relative z-10 flex min-h-screen items-center"
+        className="relative z-10 flex min-h-[calc(100svh-var(--header-height))] items-center"
         variants={heroContainerVariants}
         initial="hidden"
         animate="visible"
       >
-        <Container className="pt-14 pb-16 sm:pt-16 sm:pb-20 lg:pt-18 lg:pb-24">
+        <Container className="pt-[calc(var(--header-height)+2.5rem)] pb-16 sm:pt-[calc(var(--header-height)+3rem)] sm:pb-20 lg:pt-[calc(var(--header-height)+3.5rem)] lg:pb-24">
           <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 xl:gap-12">
             <motion.div className="max-w-[640px]" variants={heroTextVariants}>
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-1.5 text-sm font-semibold text-[color:var(--color-secondary)] shadow-[0_10px_30px_rgba(15,23,42,0.05)] backdrop-blur-xl">
@@ -120,7 +120,7 @@ export function HeroSection() {
               <motion.div className="mt-10 flex flex-col gap-3 sm:flex-row" variants={heroButtonVariants}>
                 <a
                   href="#experience"
-                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-primary)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_55px_rgba(17,24,39,0.14)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(17,24,39,0.18)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)]"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full btn-cta px-6 py-3.5 text-sm font-semibold shadow-[0_18px_55px_rgba(17,24,39,0.14)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(17,24,39,0.18)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   {t('hero.discover')}
                   <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" />

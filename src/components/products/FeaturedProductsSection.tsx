@@ -23,7 +23,7 @@ export function FeaturedProductsSection() {
 
   return (
     <Container>
-      <div className="space-y-10">
+      <div className="scroll-mt-[calc(var(--header-height)+1.5rem)] space-y-8 md:space-y-10">
         <SectionHeader
           label={t('featured.exhibition')}
           title={t('featured.title')}
