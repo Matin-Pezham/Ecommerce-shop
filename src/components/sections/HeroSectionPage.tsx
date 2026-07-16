@@ -8,7 +8,7 @@ import { SectionWrapper } from '@/components/layout/Section'
 export function HeroSectionPage() {
   return (
     <div>
-      <SectionWrapper as="div" size="xl" background="default" className="pb-0">
+      <SectionWrapper as="div" size="xl" background="default" className="pt-0 pb-0">
         <HeroSection />
       </SectionWrapper>
       <SectionWrapper id="experience" as="div" size="md" background="default" className="pt-0 pb-0">

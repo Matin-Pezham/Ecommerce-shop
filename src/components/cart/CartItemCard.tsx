@@ -1,6 +1,7 @@
 import { Trash2 } from 'lucide-react'
 import { QuantitySelector } from '@/components/cart/QuantitySelector'
 import type { ProductCartItem } from '@/features/cart/types'
+import { useTranslation } from '@/i18n'
 
 type CartItemCardProps = {
   item: ProductCartItem
@@ -10,9 +11,11 @@ type CartItemCardProps = {
 }
 
 export function CartItemCard({ item, onIncrease, onDecrease, onRemove }: CartItemCardProps) {
+  const { t, formatPrice, isRtl } = useTranslation()
+
   return (
     <article className="flex flex-col gap-4 rounded-[1.75rem] border border-[color:var(--color-border)] bg-[color:var(--color-card)]/95 p-5 shadow-[var(--shadow-soft)] sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex gap-4">
+      <div className={isRtl ? 'flex gap-4 flex-row-reverse text-right' : 'flex gap-4'}>
         <img src={item.image} alt={item.name} className="h-24 w-24 rounded-[1.25rem] object-cover" />
         <div>
           <div className="flex items-center gap-2">
@@ -22,12 +25,12 @@ export function CartItemCard({ item, onIncrease, onDecrease, onRemove }: CartIte
           <p className="mt-1 text-sm text-[color:var(--color-text-secondary)]">
             {item.selectedColor} • {item.selectedSize}
           </p>
-          <p className="mt-2 text-sm font-medium text-[color:var(--color-text-primary)]">SKU {item.sku}</p>
+          <p className="mt-2 text-sm font-medium text-[color:var(--color-text-primary)]">{t('cart.sku')} {item.sku}</p>
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 sm:items-end">
-        <div className="flex items-center gap-3">
+      <div className={isRtl ? 'flex flex-col gap-4 sm:items-start' : 'flex flex-col gap-4 sm:items-end'}>
+        <div className={isRtl ? 'flex items-center gap-3 flex-row-reverse' : 'flex items-center gap-3'}>
           <QuantitySelector
             quantity={item.quantity}
             onIncrease={() => onIncrease(item.id)}
@@ -39,14 +42,14 @@ export function CartItemCard({ item, onIncrease, onDecrease, onRemove }: CartIte
             onClick={() => onRemove(item.id)}
           >
             <Trash2 size={16} />
-            Remove
+            {t('cart.remove')}
           </button>
         </div>
 
-        <div className="text-right">
-          <p className="text-sm text-[color:var(--color-text-muted)]">Unit price</p>
-          <p className="text-xl font-semibold text-[color:var(--color-text-primary)]">${item.price.toLocaleString()}</p>
-          <p className="mt-1 text-sm text-[color:var(--color-text-secondary)]">${(item.price * item.quantity).toLocaleString()} total</p>
+        <div className={isRtl ? 'text-left' : 'text-right'}>
+          <p className="text-sm text-[color:var(--color-text-muted)]">{t('cart.unitPrice')}</p>
+          <p className="text-xl font-semibold text-[color:var(--color-text-primary)]">{formatPrice(item.price)}</p>
+          <p className="mt-1 text-sm text-[color:var(--color-text-secondary)]">{formatPrice(item.price * item.quantity)} {t('cart.total')}</p>
         </div>
       </div>
     </article>

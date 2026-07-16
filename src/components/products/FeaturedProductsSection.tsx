@@ -1,23 +1,37 @@
 import { useMemo, useState } from 'react'
 import { Container } from '@/components/layout/Container'
 import { FilterChips } from '@/components/products/FilterChips'
-import { mockProducts } from '@/components/products/mockProducts'
 import { ProductsCarousel } from '@/components/products/ProductsCarousel'
 import { ProductsGrid } from '@/components/products/ProductsGrid'
 import { SectionHeader } from '@/components/products/SectionHeader'
+import { productsCatalog } from '@/data/products'
 import { useTranslation } from '@/i18n'
-import type { ProductCategory } from '@/components/products/productTypes'
+import type { Product } from '@/features/products/types'
 
-export function FeaturedProductsSection() {
-  const [activeCategory, setActiveCategory] = useState<ProductCategory | 'All'>('All')
+type FeaturedProductsSectionProps = {
+  products?: Product[]
+  labelKey?: string
+  titleKey?: string
+  descriptionKey?: string
+  showFilters?: boolean
+}
+
+export function FeaturedProductsSection({
+  products = productsCatalog,
+  labelKey = 'featured.exhibition',
+  titleKey = 'featured.title',
+  descriptionKey = 'featured.description',
+  showFilters = true,
+}: FeaturedProductsSectionProps) {
+  const [activeCategory, setActiveCategory] = useState<string | 'all'>('all')
 
   const filteredProducts = useMemo(() => {
-    if (activeCategory === 'All') {
-      return mockProducts
+    if (!showFilters || activeCategory === 'all') {
+      return products
     }
 
-    return mockProducts.filter((product) => product.category === activeCategory)
-  }, [activeCategory])
+    return products.filter((product) => product.categoryId === activeCategory)
+  }, [activeCategory, products, showFilters])
 
   const { t } = useTranslation()
 
@@ -25,22 +39,36 @@ export function FeaturedProductsSection() {
     <Container>
       <div className="scroll-mt-[calc(var(--header-height)+1.5rem)] space-y-8 md:space-y-10">
         <SectionHeader
-          label={t('featured.exhibition')}
-          title={t('featured.title')}
-          description={t('featured.description')}
+          label={t(labelKey)}
+          title={t(titleKey)}
+          description={t(descriptionKey)}
         >
           <div className="flex flex-col gap-4">
-            <FilterChips activeCategory={activeCategory} onChange={setActiveCategory} />
-            <p className="text-sm text-[color:var(--color-text-secondary)]">{t('featured.showing', { count: filteredProducts.length, total: mockProducts.length })}</p>
+            {showFilters ? <FilterChips activeCategory={activeCategory} onChange={setActiveCategory} /> : null}
+            <p className="text-sm text-[color:var(--color-text-secondary)]">{t('featured.showing', { count: filteredProducts.length, total: products.length })}</p>
           </div>
         </SectionHeader>
 
         <div className="hidden xl:block">
-          <ProductsGrid products={filteredProducts} />
+          {filteredProducts.length > 0 ? (
+            <ProductsGrid products={filteredProducts} />
+          ) : (
+            <div className="rounded-[1.5rem] border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 p-8 text-center">
+              <h3 className="text-xl font-semibold text-[color:var(--color-text-primary)]">{t('product.noProductsTitle')}</h3>
+              <p className="mt-2 text-sm text-[color:var(--color-text-secondary)]">{t('product.noProductsDescription')}</p>
+            </div>
+          )}
         </div>
 
         <div className="block xl:hidden">
-          <ProductsCarousel products={filteredProducts} />
+          {filteredProducts.length > 0 ? (
+            <ProductsCarousel products={filteredProducts} />
+          ) : (
+            <div className="rounded-[1.5rem] border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 p-8 text-center">
+              <h3 className="text-xl font-semibold text-[color:var(--color-text-primary)]">{t('product.noProductsTitle')}</h3>
+              <p className="mt-2 text-sm text-[color:var(--color-text-secondary)]">{t('product.noProductsDescription')}</p>
+            </div>
+          )}
         </div>
       </div>
     </Container>

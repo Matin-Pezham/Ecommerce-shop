@@ -1,14 +1,17 @@
 import { ShoppingBag } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { CartItemCard } from '@/components/cart/CartItemCard'
 import { CartSummary } from '@/components/cart/CartSummary'
 import { EmptyCart } from '@/components/cart/EmptyCart'
 import { calculateCartPriceSummary } from '@/features/cart/priceUtils'
+import { useTranslation } from '@/i18n'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { decreaseQuantity, increaseQuantity, removeItem } from '@/features/cart/cartSlice'
 
 export function CartPage() {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
+  const { t, isRtl } = useTranslation()
   const items = useAppSelector((state) => state.cart.items)
   const summary = calculateCartPriceSummary(items)
 
@@ -24,12 +27,12 @@ export function CartPage() {
     <div className="py-8 lg:py-12">
       <div className="mb-8 flex flex-col gap-4 rounded-[2rem] border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 p-6 shadow-[var(--shadow-soft)] backdrop-blur-xl sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-[color:var(--color-text-muted)]">Shopping bag</p>
-          <h2 className="mt-2 text-3xl font-semibold text-[color:var(--color-text-primary)]">Your curated selection</h2>
-          <p className="mt-2 max-w-2xl text-sm text-[color:var(--color-text-secondary)]">Every detail is prepared for a calm and polished shopping experience.</p>
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-[color:var(--color-text-muted)]">{t('cart.title')}</p>
+          <h2 className="mt-2 text-3xl font-semibold text-[color:var(--color-text-primary)]">{t('cart.subtitle')}</h2>
+          <p className="mt-2 max-w-2xl text-sm text-[color:var(--color-text-secondary)]">{t('cart.description')}</p>
         </div>
-        <Link to="/home" className="inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border)] px-4 py-2 text-sm font-semibold text-[color:var(--color-text-primary)] transition hover:bg-[color:var(--color-surface)]">
-          <ShoppingBag size={16} /> Continue shopping
+        <Link to="/home" className={`inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border)] px-4 py-2 text-sm font-semibold text-[color:var(--color-text-primary)] transition hover:bg-[color:var(--color-surface)] ${isRtl ? 'flex-row-reverse' : ''}`}>
+          <ShoppingBag size={16} /> {t('common.continueShopping')}
         </Link>
       </div>
 
@@ -47,7 +50,7 @@ export function CartPage() {
         </div>
 
         <div className="xl:sticky xl:top-28 xl:self-start">
-          <CartSummary summary={summary} onCheckout={() => undefined} />
+          <CartSummary summary={summary} onCheckout={() => navigate('/checkout/shipping')} />
         </div>
       </div>
     </div>

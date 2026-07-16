@@ -6,6 +6,8 @@ const initialState: CartState = {
   items: mockCartItems,
   couponCode: null,
   currency: 'USD',
+  isDrawerOpen: false,
+  showAddedFeedback: false,
 }
 
 const cartSlice = createSlice({
@@ -17,9 +19,13 @@ const cartSlice = createSlice({
       if (existing) {
         existing.quantity += action.payload.quantity
         existing.quantity = Math.min(existing.quantity, existing.stock)
+        state.isDrawerOpen = true
+        state.showAddedFeedback = true
         return
       }
       state.items.push(action.payload)
+      state.isDrawerOpen = true
+      state.showAddedFeedback = true
     },
     removeItem: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter((item) => item.id !== action.payload)
@@ -54,6 +60,20 @@ const cartSlice = createSlice({
     setCouponCode: (state, action: PayloadAction<string | null>) => {
       state.couponCode = action.payload
     },
+    openCartDrawer: (state) => {
+      state.isDrawerOpen = true
+      state.showAddedFeedback = false
+    },
+    closeCartDrawer: (state) => {
+      state.isDrawerOpen = false
+      state.showAddedFeedback = false
+    },
+    toggleCartDrawer: (state) => {
+      state.isDrawerOpen = !state.isDrawerOpen
+      if (!state.isDrawerOpen) {
+        state.showAddedFeedback = false
+      }
+    },
   },
 })
 
@@ -65,6 +85,9 @@ export const {
   setQuantity,
   clearCart,
   setCouponCode,
+  openCartDrawer,
+  closeCartDrawer,
+  toggleCartDrawer,
 } = cartSlice.actions
 
 export default cartSlice.reducer

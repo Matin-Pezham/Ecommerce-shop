@@ -65,10 +65,12 @@ export function HeroSection() {
 
   return (
     <section className="relative isolate overflow-hidden bg-[color:var(--color-background)]">
-      <div className="relative z-20 w-full border-b border-white/10 bg-[linear-gradient(90deg,rgba(236,72,153,0.18),rgba(59,130,246,0.16),rgba(16,185,129,0.14))] bg-opacity-90 px-4 py-3 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-white/90">
+      <div className="relative z-20 w-full border-b border-white/20 bg-[linear-gradient(90deg,rgba(59,130,246,0.72),rgba(236,72,153,0.7),rgba(16,185,129,0.65))] px-4 py-3 backdrop-blur-xl shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-white">
           <span>{t('hero.launchEdition')}</span>
-          <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1">{t('hero.livePreview')}</span>
+          <span className="rounded-full border border-white/30 bg-white/15 px-3 py-1 text-white">
+            {t('hero.livePreview')}
+          </span>
         </div>
       </div>
       <motion.div
@@ -93,12 +95,12 @@ export function HeroSection() {
       </motion.div>
 
       <motion.div
-        className="relative z-10 flex min-h-[calc(100svh-var(--header-height))] items-center"
+        className="relative z-10 flex min-h-[calc(100svh-var(--header-height))] items-start"
         variants={heroContainerVariants}
         initial="hidden"
         animate="visible"
       >
-        <Container className="pt-[calc(var(--header-height)+2.5rem)] pb-16 sm:pt-[calc(var(--header-height)+3rem)] sm:pb-20 lg:pt-[calc(var(--header-height)+3.5rem)] lg:pb-24">
+        <Container className="pt-4 pb-14 sm:pt-6 sm:pb-16 lg:pt-8 lg:pb-20">
           <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 xl:gap-12">
             <motion.div className="max-w-[640px]" variants={heroTextVariants}>
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)] px-3 py-1.5 text-sm font-semibold text-[color:var(--color-secondary)] shadow-[0_10px_30px_rgba(15,23,42,0.05)] backdrop-blur-xl">

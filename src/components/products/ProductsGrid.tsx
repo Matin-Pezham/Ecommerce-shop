@@ -2,7 +2,8 @@ import { motion } from 'framer-motion'
 import { useMemo } from 'react'
 import { sectionRevealVariants } from '@/components/products/productAnimations'
 import { ProductCard } from '@/components/products/ProductCard'
-import type { Product, ProductCardVariant } from '@/components/products/productTypes'
+import type { ProductCardVariant } from '@/components/products/productTypes'
+import type { Product } from '@/features/products/types'
 
 type ProductsGridProps = {
   products: Product[]
@@ -10,13 +11,13 @@ type ProductsGridProps = {
 
 export function ProductsGrid({ products }: ProductsGridProps) {
   const layoutProducts = useMemo(() => {
-    return products.map((product, index) => ({
+    return products.map((product) => ({
       product,
-      variant: index === 0 ? 'featured' : 'secondary',
+      variant: product.id === 'aurora-one' ? 'featured' : 'secondary',
     }))
   }, [products])
 
-  const gridClassName = products.length <= 4 ? 'grid gap-5 md:grid-cols-2 xl:grid-cols-4' : 'grid gap-5 md:grid-cols-2 xl:grid-cols-3'
+  const gridClassName = 'grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-5'
 
   return (
     <motion.div
@@ -26,10 +27,9 @@ export function ProductsGrid({ products }: ProductsGridProps) {
       whileInView="visible"
       viewport={{ once: true, amount: 0.12 }}
     >
-      {layoutProducts.map(({ product, variant }, index) => {
-        const className = index === 0 ? 'md:col-span-2 md:row-span-2 xl:col-span-2 xl:row-span-2' : 'md:col-span-1 xl:col-span-1'
+      {layoutProducts.map(({ product, variant }) => {
         return (
-          <div key={product.id} className={className}>
+          <div key={product.id} className="h-full">
             <ProductCard product={product} variant={variant as ProductCardVariant} />
           </div>
         )

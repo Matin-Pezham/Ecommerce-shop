@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useMemo } from 'react'
 import { ProductCard } from '@/components/products/ProductCard'
-import type { Product } from '@/components/products/productTypes'
+import type { Product } from '@/features/products/types'
 
 type ProductsCarouselProps = {
   products: Product[]

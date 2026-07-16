@@ -40,6 +40,7 @@ export function useGSAPScrollStory(): UseGSAPScrollStoryResult {
     const updatePreference = () => setReducedMotion(mediaQuery.matches)
     updatePreference()
     mediaQuery.addEventListener('change', updatePreference)
+    const activeContainer = containerRef.current
 
     const ctx = gsap.context(() => {
       if (reducedMotion) {
@@ -65,7 +66,7 @@ export function useGSAPScrollStory(): UseGSAPScrollStoryResult {
           pinSpacing: false,
           anticipatePin: 1,
           invalidateOnRefresh: true,
-          onUpdate: (self: any) => {
+          onUpdate: (self: ScrollTrigger) => {
             const nextPhase = getStoryPhase(self.progress)
             setPhase(nextPhase)
             setProgress(self.progress)
@@ -122,8 +123,8 @@ export function useGSAPScrollStory(): UseGSAPScrollStoryResult {
       timelineRef.current?.kill()
       timelineRef.current = null
       setTimeline(null)
-      ScrollTrigger.getAll().forEach((trigger: any) => {
-        if (trigger.trigger === containerRef.current) {
+      ScrollTrigger.getAll().forEach((trigger: ScrollTrigger) => {
+        if (trigger.trigger === activeContainer) {
           trigger.kill()
         }
       })

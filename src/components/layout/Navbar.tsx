@@ -1,11 +1,15 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { Heart, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
-import { memo, useEffect, useMemo, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { ChevronDown, Compass, LogOut, Menu, Search, ShoppingBag, X } from 'lucide-react'
+import { memo, useEffect, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Container } from '@/components/layout/Container'
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
+import { logout } from '@/features/auth/authSlice'
+import { selectAuthUser, selectIsAuthenticated } from '@/features/auth/authSelectors'
+import { openCartDrawer } from '@/features/cart/cartSlice'
+import { selectCartTotalQuantity } from '@/features/cart/selectors'
 import { useTranslation } from '@/i18n'
-import { useAppSelector } from '@/store/hooks'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { cn } from '@/utils/cn'
 
 type NavbarProps = {
@@ -22,17 +26,19 @@ const navItems = [
 ]
 
 function NavbarInner({ isScrolled = false }: NavbarProps) {
+  const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const { t, isRtl } = useTranslation()
   const location = useLocation()
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false)
+  const accountMenuRef = useRef<HTMLDivElement | null>(null)
 
-  const cartItems = useAppSelector((state) => state.cart.items)
-  const wishlistItems = useAppSelector((state) => state.wishlist.items)
-  const { user } = useAppSelector((state) => state.user)
+  const isAuthenticated = useAppSelector(selectIsAuthenticated)
+  const authUser = useAppSelector(selectAuthUser)
+  const cartCount = useAppSelector(selectCartTotalQuantity)
 
-  const cartCount = useMemo(() => cartItems.reduce((sum, item) => sum + item.quantity, 0), [cartItems])
-  const wishlistCount = wishlistItems.length
   const pathname = location.pathname
 
   const isActiveRoute = (href: string) => {
@@ -41,9 +47,6 @@ function NavbarInner({ isScrolled = false }: NavbarProps) {
     if (href === '/wishlist') return pathname === '/wishlist' || pathname.startsWith('/account/wishlist')
     return pathname === href || pathname.startsWith(`${href}/`)
   }
-
-  const ctaLabel = pathname === '/cart' ? t('nav.viewCart') : t('nav.shopNow')
-  const ctaHref = pathname === '/cart' ? '/cart' : '/shop'
 
   useEffect(() => {
     const shouldLockScroll = isMobileOpen || isSearchOpen
@@ -56,6 +59,51 @@ function NavbarInner({ isScrolled = false }: NavbarProps) {
     }
   }, [isMobileOpen, isSearchOpen])
 
+  useEffect(() => {
+    if (!isAccountMenuOpen) return
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!accountMenuRef.current) return
+      if (!accountMenuRef.current.contains(event.target as Node)) {
+        setIsAccountMenuOpen(false)
+      }
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsAccountMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isAccountMenuOpen])
+
+  const protectedPrefixes = ['/account', '/checkout', '/order-success']
+
+  const handleLogout = () => {
+    dispatch(logout())
+    setIsAccountMenuOpen(false)
+
+    if (protectedPrefixes.some((prefix) => pathname.startsWith(prefix))) {
+      navigate('/home')
+    }
+  }
+
+  const accountInitials = authUser?.fullName
+    ? authUser.fullName
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? '')
+        .join('')
+    : 'U'
+
   return (
     <>
       <header className={cn('sticky top-0 z-[70] w-full px-4 pb-3 pt-3 sm:px-6 lg:px-8', isScrolled && 'pb-2 pt-2')} style={{ minHeight: 'var(--header-height)' }}>
@@ -63,25 +111,19 @@ function NavbarInner({ isScrolled = false }: NavbarProps) {
           <nav className={cn('relative mx-auto w-full overflow-hidden rounded-[2rem] border border-[color:var(--color-border)] bg-[color:var(--color-card)]/85 px-3 py-3 shadow-[var(--shadow-soft)] backdrop-blur-2xl transition-all duration-300', isScrolled && 'border-[color:var(--color-border-strong)] shadow-[var(--shadow-medium)]')} aria-label={t('nav.primaryNavigation')}>
             <div className="pointer-events-none absolute inset-x-6 top-0 h-px rounded-full bg-gradient-to-r from-transparent via-[color:var(--color-primary)]/20 to-transparent" />
 
-            <div className={cn('relative flex items-center justify-between gap-2', isRtl && 'flex-row-reverse')}>
-              <Link
-                to="/home"
-                className="flex items-center gap-3 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 px-3 py-2 shadow-[0_16px_36px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_45px_rgba(15,23,42,0.1)]"
+            <div className={cn('relative grid grid-cols-[auto_1fr_auto] items-center gap-2', isRtl && 'rtl')}>
+              <button
+                type="button"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="flex items-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 px-2 py-2 shadow-[0_16px_36px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_45px_rgba(15,23,42,0.1)]"
+                aria-label={t('nav.scrollTop')}
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-full btn-cta text-sm font-semibold uppercase tracking-[0.3em] text-white">
-                  N
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-primary)] text-white shadow-[0_12px_24px_rgba(59,130,246,0.3)]">
+                  <Compass size={20} />
                 </div>
-                <div className={cn('flex flex-col', isRtl && 'items-end')}>
-                  <span className="text-[0.9rem] font-semibold tracking-[0.18em] text-[color:var(--color-text-primary)]">
-                    {t('brand.name')}
-                  </span>
-                  <span className="text-[0.62rem] uppercase tracking-[0.32em] text-[color:var(--color-text-secondary)]">
-                    {t('brand.subtitle')}
-                  </span>
-                </div>
-              </Link>
+              </button>
 
-              <div className="hidden items-center justify-center gap-2 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/80 px-2 py-2 lg:flex">
+              <div className={cn('hidden items-center justify-center gap-2 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-surface)]/80 px-2 py-2 lg:flex', isRtl && 'flex-row-reverse')}>
                 {navItems.map((item) => {
                   const active = isActiveRoute(item.href)
                   return (
@@ -99,68 +141,88 @@ function NavbarInner({ isScrolled = false }: NavbarProps) {
                     </Link>
                   )
                 })}
-              </div>
 
-              <div className={cn('flex items-center gap-2', isRtl && 'flex-row-reverse')}>
                 <button
                   type="button"
                   onClick={() => setIsSearchOpen(true)}
-                  className="hidden h-10 w-10 items-center justify-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 text-[color:var(--color-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)] sm:inline-flex"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 text-[color:var(--color-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)]"
                   aria-label={t('nav.search')}
                 >
                   <Search size={18} />
                 </button>
 
-                <Link
-                  to="/account/wishlist"
-                  className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 text-[color:var(--color-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)] sm:inline-flex"
-                  aria-label={t('nav.wishlist')}
-                >
-                  <Heart size={18} />
-                  {wishlistCount > 0 ? (
-                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full btn-cta px-1 text-[0.65rem] font-semibold text-white">
-                      {wishlistCount}
-                    </span>
-                  ) : null}
-                </Link>
+                <LanguageSwitcher />
+              </div>
 
-                <Link
-                  to="/account"
-                  className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 text-[color:var(--color-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)] sm:inline-flex"
-                  aria-label={t('nav.account')}
-                >
-                  {user.avatarUrl ? (
-                    <img src={user.avatarUrl} alt={user.fullName} className="h-8 w-8 rounded-full object-cover" />
-                  ) : (
-                    <UserRound size={18} />
-                  )}
-                </Link>
-
-                <Link
-                  to="/cart"
-                  className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 text-[color:var(--color-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)] sm:inline-flex"
-                  aria-label={t('nav.cart')}
+              <div className={cn('flex items-center justify-end gap-2', isRtl && 'flex-row-reverse')}>
+                <button
+                  type="button"
+                  onClick={() => dispatch(openCartDrawer())}
+                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 text-[color:var(--color-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)]"
+                  aria-label={t('cart.cartCount', { count: cartCount })}
                 >
                   <ShoppingBag size={18} />
                   {cartCount > 0 ? (
-                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full btn-cta px-1 text-[0.65rem] font-semibold text-white">
+                    <span className="absolute -right-1 -top-1 inline-flex min-w-[1.1rem] items-center justify-center rounded-full bg-[color:var(--color-primary)] px-1.5 text-[10px] font-semibold text-white">
                       {cartCount}
                     </span>
                   ) : null}
-                </Link>
+                </button>
 
-                <LanguageSwitcher />
+                {isAuthenticated ? (
+                  <div ref={accountMenuRef} className="relative hidden sm:block">
+                    <button
+                      type="button"
+                      onClick={() => setIsAccountMenuOpen((open) => !open)}
+                      className={`inline-flex h-10 items-center gap-2 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 px-2.5 text-[color:var(--color-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)] ${isRtl ? 'flex-row-reverse' : ''}`}
+                      aria-expanded={isAccountMenuOpen}
+                      aria-label={t('auth.account')}
+                    >
+                      {authUser?.avatarUrl ? (
+                        <img src={authUser.avatarUrl} alt={authUser.fullName} className="h-7 w-7 rounded-full object-cover" />
+                      ) : (
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--color-primary)] text-[11px] font-semibold text-white">
+                          {accountInitials}
+                        </span>
+                      )}
+                      <ChevronDown size={14} className={`transition ${isAccountMenuOpen ? 'rotate-180' : ''}`} />
+                    </button>
 
-                <Link
-                  to={ctaHref}
-                  className="hidden rounded-full btn-cta px-4 py-2.5 text-sm font-semibold shadow-[0_12px_30px_rgba(15,23,42,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_40px_rgba(15,23,42,0.14)] sm:inline-flex"
-                >
-                  {ctaLabel}
-                </Link>
+                    {isAccountMenuOpen ? (
+                      <div
+                        className={`absolute top-[calc(100%+0.45rem)] z-[90] min-w-[220px] rounded-2xl border border-[color:var(--color-border)] bg-[color:var(--color-card)]/98 p-2 shadow-[var(--shadow-medium)] backdrop-blur ${isRtl ? 'left-0 text-right' : 'right-0'}`}
+                        role="menu"
+                        aria-label={t('auth.account')}
+                      >
+                        <Link to="/account" onClick={() => setIsAccountMenuOpen(false)} className="block rounded-xl px-3 py-2 text-sm text-[color:var(--color-text-primary)] transition hover:bg-[color:var(--color-surface)]" role="menuitem">{t('auth.account')}</Link>
+                        <Link to="/account/orders" onClick={() => setIsAccountMenuOpen(false)} className="block rounded-xl px-3 py-2 text-sm text-[color:var(--color-text-primary)] transition hover:bg-[color:var(--color-surface)]" role="menuitem">{t('auth.orders')}</Link>
+                        <Link to="/account/wishlist" onClick={() => setIsAccountMenuOpen(false)} className="block rounded-xl px-3 py-2 text-sm text-[color:var(--color-text-primary)] transition hover:bg-[color:var(--color-surface)]" role="menuitem">{t('auth.wishlist')}</Link>
+                        <Link to="/account/settings" onClick={() => setIsAccountMenuOpen(false)} className="block rounded-xl px-3 py-2 text-sm text-[color:var(--color-text-primary)] transition hover:bg-[color:var(--color-surface)]" role="menuitem">{t('auth.settings')}</Link>
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className={`mt-1 inline-flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-[color:var(--color-danger)] transition hover:bg-[color:var(--color-surface)] ${isRtl ? 'flex-row-reverse justify-end' : ''}`}
+                          role="menuitem"
+                        >
+                          <LogOut size={14} />
+                          {t('auth.logout')}
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="hidden rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 px-4 py-2 text-sm font-semibold text-[color:var(--color-primary)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)] sm:inline-flex"
+                    aria-label={t('auth.signIn')}
+                  >
+                    {t('auth.signIn')}
+                  </Link>
+                )}
 
                 <button
                   type="button"
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 text-[color:var(--color-primary)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)] sm:hidden"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 text-[color:var(--color-primary)] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)] sm:hidden"
                   aria-expanded={isMobileOpen}
                   aria-label={t('nav.toggleMenu')}
                   onClick={() => setIsMobileOpen((value) => !value)}
@@ -237,15 +299,19 @@ function NavbarInner({ isScrolled = false }: NavbarProps) {
               className={cn('ml-auto h-full w-full max-w-sm border-[color:var(--color-border)] bg-[color:var(--color-card)]/95 p-5 shadow-[var(--shadow-large)]', isRtl ? 'mr-auto border-r' : 'ml-auto border-l')}
             >
               <div className={cn('flex items-center justify-between', isRtl && 'flex-row-reverse')}>
-                <Link to="/home" className="flex items-center gap-3" onClick={() => setIsMobileOpen(false)}>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full btn-cta text-sm font-semibold uppercase tracking-[0.3em] text-white">
-                    N
-                  </div>
-                  <div className={cn('flex flex-col', isRtl && 'items-end')}>
-                    <span className="text-sm font-semibold text-[color:var(--color-text-primary)]">{t('brand.name')}</span>
-                    <span className="text-[0.62rem] uppercase tracking-[0.32em] text-[color:var(--color-text-secondary)]">{t('brand.subtitle')}</span>
-                  </div>
-                </Link>
+                <button
+                type="button"
+                onClick={() => {
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                  setIsMobileOpen(false)
+                }}
+                className="flex items-center"
+                aria-label={t('nav.scrollTop')}
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--color-primary)] text-white shadow-[0_12px_24px_rgba(59,130,246,0.3)]">
+                  <Compass size={20} />
+                </div>
+              </button>
                 <button type="button" onClick={() => setIsMobileOpen(false)} className="rounded-full border border-[color:var(--color-border)] p-2.5 text-[color:var(--color-text-secondary)]">
                   <X size={18} />
                 </button>
@@ -271,15 +337,42 @@ function NavbarInner({ isScrolled = false }: NavbarProps) {
                   <span className="text-xs uppercase tracking-[0.24em] text-[color:var(--color-text-muted)]">{t('nav.account')}</span>
                 </div>
                 <div className={cn('mt-4 flex flex-wrap gap-2', isRtl && 'flex-row-reverse')}>
-                  <Link to="/account" onClick={() => setIsMobileOpen(false)} className="rounded-full border border-[color:var(--color-border)] px-3 py-2 text-sm font-medium text-[color:var(--color-text-primary)] transition hover:bg-[color:var(--color-card)]">
-                    {t('nav.account')}
-                  </Link>
-                  <Link to="/account/wishlist" onClick={() => setIsMobileOpen(false)} className="rounded-full border border-[color:var(--color-border)] px-3 py-2 text-sm font-medium text-[color:var(--color-text-primary)] transition hover:bg-[color:var(--color-card)]">
-                    {t('nav.wishlist')}
-                  </Link>
-                  <Link to="/cart" onClick={() => setIsMobileOpen(false)} className="rounded-full border border-[color:var(--color-border)] px-3 py-2 text-sm font-medium text-[color:var(--color-text-primary)] transition hover:bg-[color:var(--color-card)]">
+                  {isAuthenticated ? (
+                    <>
+                      <Link to="/account" onClick={() => setIsMobileOpen(false)} className="rounded-full border border-[color:var(--color-border)] px-3 py-2 text-sm font-medium text-[color:var(--color-text-primary)] transition hover:bg-[color:var(--color-card)]">
+                        {t('auth.account')}
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleLogout()
+                          setIsMobileOpen(false)
+                        }}
+                        className="rounded-full border border-[color:var(--color-border)] px-3 py-2 text-sm font-medium text-[color:var(--color-danger)] transition hover:bg-[color:var(--color-card)]"
+                      >
+                        {t('auth.logout')}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/login" onClick={() => setIsMobileOpen(false)} className="rounded-full border border-[color:var(--color-border)] px-3 py-2 text-sm font-medium text-[color:var(--color-text-primary)] transition hover:bg-[color:var(--color-card)]">
+                        {t('auth.signIn')}
+                      </Link>
+                      <Link to="/register" onClick={() => setIsMobileOpen(false)} className="rounded-full border border-[color:var(--color-border)] px-3 py-2 text-sm font-medium text-[color:var(--color-text-primary)] transition hover:bg-[color:var(--color-card)]">
+                        {t('auth.signUp')}
+                      </Link>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      dispatch(openCartDrawer())
+                      setIsMobileOpen(false)
+                    }}
+                    className="rounded-full border border-[color:var(--color-border)] px-3 py-2 text-sm font-medium text-[color:var(--color-text-primary)] transition hover:bg-[color:var(--color-card)]"
+                  >
                     {t('nav.cart')}
-                  </Link>
+                  </button>
                 </div>
               </div>
 

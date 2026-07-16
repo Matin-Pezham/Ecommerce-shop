@@ -17,7 +17,7 @@ export function AccountOverview() {
     <div>
       <AccountHeader
         title={`${t('account.overview.welcomeBack')}, ${user.firstName}`}
-        description="Your account is designed to feel as polished as your wardrobe, with every detail curated for effortless access."
+        description={t('account.overview.description')}
         action={
           <Link to="/cart" className={`inline-flex items-center gap-2 rounded-full btn-cta px-5 py-3 text-sm font-semibold shadow-[var(--shadow-soft)] transition ${isRtl ? 'flex-row-reverse' : ''}`}>
             {t('account.overview.continueShopping')} <ArrowRight size={16} />

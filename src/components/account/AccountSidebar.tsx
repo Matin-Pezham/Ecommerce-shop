@@ -27,7 +27,7 @@ export function AccountSidebar() {
           </p>
         </div>
 
-        <nav className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible" aria-label="Account navigation">
+        <nav className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible" aria-label={t('account.sidebar.navigationLabel')}>
           {items.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}

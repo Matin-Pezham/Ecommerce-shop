@@ -18,4 +18,6 @@ export type CartState = {
   items: ProductCartItem[]
   couponCode: string | null
   currency: string
+  isDrawerOpen: boolean
+  showAddedFeedback: boolean
 }
