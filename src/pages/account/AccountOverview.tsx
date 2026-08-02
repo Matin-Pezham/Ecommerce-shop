@@ -2,21 +2,26 @@ import { ArrowRight, Heart, MapPin, ShoppingBag } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { AccountHeader } from '@/components/account/AccountHeader'
 import { AccountStatCard } from '@/components/account/AccountStatCard'
+import { selectAuthUser } from '@/features/auth/authSelectors'
+import { selectCustomerAccountStats, selectDefaultAddress } from '@/features/user/userSelectors'
 import { useTranslation } from '@/i18n'
 import { useAppSelector } from '@/store/hooks'
 import { mockOrders } from '@/features/orders/mockOrders'
 
 export function AccountOverview() {
   const { t, isRtl, formatPrice, formatDate, formatOrderStatus } = useTranslation()
-  const { user, addresses } = useAppSelector((state) => state.user)
+  const authUser = useAppSelector(selectAuthUser)
+  const stats = useAppSelector(selectCustomerAccountStats)
+  const defaultAddress = useAppSelector(selectDefaultAddress)
   const cartItems = useAppSelector((state) => state.cart.items)
   const wishlistItems = useAppSelector((state) => state.wishlist.items)
-  const defaultAddress = addresses.find((address) => address.id === user.defaultAddressId) ?? addresses[0]
+
+  const welcomeName = authUser?.firstName ? `, ${authUser.firstName}` : ''
 
   return (
     <div>
       <AccountHeader
-        title={`${t('account.overview.welcomeBack')}, ${user.firstName}`}
+        title={`${t('account.overview.welcomeBack')}${welcomeName}`}
         description={t('account.overview.description')}
         action={
           <Link to="/cart" className={`inline-flex items-center gap-2 rounded-full btn-cta px-5 py-3 text-sm font-semibold shadow-[var(--shadow-soft)] transition ${isRtl ? 'flex-row-reverse' : ''}`}>
@@ -26,9 +31,9 @@ export function AccountOverview() {
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <AccountStatCard label={t('account.overview.loyalty')} value={user.loyaltyLevel} description={t('account.overview.loyalty')} tone="accent" />
-        <AccountStatCard label={t('account.overview.orders')} value={String(user.totalOrders)} description={t('account.overview.orders')} />
-        <AccountStatCard label={t('account.overview.spend')} value={formatPrice(user.totalSpent)} description={t('account.overview.spend')} />
+        <AccountStatCard label={t('account.overview.loyalty')} value={stats.loyaltyLevel} description={t('account.overview.loyalty')} tone="accent" />
+        <AccountStatCard label={t('account.overview.orders')} value={String(stats.totalOrders)} description={t('account.overview.orders')} />
+        <AccountStatCard label={t('account.overview.spend')} value={formatPrice(stats.totalSpent)} description={t('account.overview.spend')} />
         <AccountStatCard label={t('account.overview.wishlist')} value={String(wishlistItems.length)} description={t('account.overview.wishlist')} />
       </div>
 

@@ -1,73 +1,75 @@
-import { useState } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
 import { AuthFormField } from '@/components/auth/AuthFormField'
+import {
+  createRegisterValidationSchema,
+  type RegisterFormInput,
+  type RegisterFormOutput,
+} from '@/features/auth/registerValidation'
+import type { RegisterPayload } from '@/features/auth/types'
 import { useTranslation } from '@/i18n'
-
-type RegisterFormValues = {
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  password: string
-  confirmPassword: string
-}
 
 type RegisterFormProps = {
   loading: boolean
   error?: string | null
-  onSubmit: (values: RegisterFormValues) => void
+  onSubmit: (values: RegisterPayload) => void
 }
 
 export function RegisterForm({ loading, error, onSubmit }: RegisterFormProps) {
   const { t, isRtl } = useTranslation()
-  const [values, setValues] = useState<RegisterFormValues>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
+  const schema = createRegisterValidationSchema({
+    requiredField: t('auth.requiredField'),
+    invalidEmail: t('auth.invalidEmail'),
+    nameTooLong: t('auth.nameTooLong'),
+    invalidPhone: t('auth.invalidPhone'),
+    passwordTooShort: t('auth.passwordTooShort'),
+    passwordRequirements: t('auth.passwordRequirements'),
+    passwordMismatch: t('auth.passwordMismatch'),
   })
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof RegisterFormValues, string>>>({})
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormInput, undefined, RegisterFormOutput>({
+    resolver: zodResolver(schema),
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      password: '',
+      confirmPassword: '',
+    },
+  })
 
-    const nextErrors: Partial<Record<keyof RegisterFormValues, string>> = {}
-
-    if (!values.firstName.trim()) nextErrors.firstName = t('auth.requiredField')
-    if (!values.lastName.trim()) nextErrors.lastName = t('auth.requiredField')
-    if (!values.email.trim()) nextErrors.email = t('auth.requiredField')
-    if (!values.password.trim()) nextErrors.password = t('auth.requiredField')
-    if (!values.confirmPassword.trim()) nextErrors.confirmPassword = t('auth.requiredField')
-    if (values.password && values.confirmPassword && values.password !== values.confirmPassword) {
-      nextErrors.confirmPassword = t('auth.passwordMismatch')
+  const submitRegister = (values: RegisterFormOutput) => {
+    if (loading) {
+      return
     }
-
-    setFieldErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) return
 
     onSubmit(values)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(submitRegister)} aria-busy={loading ? 'true' : undefined} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <AuthFormField
           id="auth-register-first-name"
           type="text"
           label={t('auth.firstName')}
-          value={values.firstName}
-          error={fieldErrors.firstName}
-          onChange={(event) => setValues((prev) => ({ ...prev, firstName: event.target.value }))}
+          error={errors.firstName?.message}
+          {...register('firstName')}
           autoComplete="given-name"
         />
         <AuthFormField
           id="auth-register-last-name"
           type="text"
           label={t('auth.lastName')}
-          value={values.lastName}
-          error={fieldErrors.lastName}
-          onChange={(event) => setValues((prev) => ({ ...prev, lastName: event.target.value }))}
+          error={errors.lastName?.message}
+          {...register('lastName')}
           autoComplete="family-name"
         />
       </div>
@@ -76,9 +78,8 @@ export function RegisterForm({ loading, error, onSubmit }: RegisterFormProps) {
         id="auth-register-email"
         type="email"
         label={t('auth.email')}
-        value={values.email}
-        error={fieldErrors.email}
-        onChange={(event) => setValues((prev) => ({ ...prev, email: event.target.value }))}
+        error={errors.email?.message}
+        {...register('email')}
         autoComplete="email"
       />
 
@@ -86,9 +87,8 @@ export function RegisterForm({ loading, error, onSubmit }: RegisterFormProps) {
         id="auth-register-phone"
         type="tel"
         label={t('auth.phone')}
-        value={values.phone}
-        error={fieldErrors.phone}
-        onChange={(event) => setValues((prev) => ({ ...prev, phone: event.target.value }))}
+        error={errors.phone?.message}
+        {...register('phone')}
         autoComplete="tel"
       />
 
@@ -97,23 +97,25 @@ export function RegisterForm({ loading, error, onSubmit }: RegisterFormProps) {
           id="auth-register-password"
           type="password"
           label={t('auth.password')}
-          value={values.password}
-          error={fieldErrors.password}
-          onChange={(event) => setValues((prev) => ({ ...prev, password: event.target.value }))}
+          error={errors.password?.message}
+          {...register('password')}
           autoComplete="new-password"
         />
         <AuthFormField
           id="auth-register-confirm-password"
           type="password"
           label={t('auth.confirmPassword')}
-          value={values.confirmPassword}
-          error={fieldErrors.confirmPassword}
-          onChange={(event) => setValues((prev) => ({ ...prev, confirmPassword: event.target.value }))}
+          error={errors.confirmPassword?.message}
+          {...register('confirmPassword')}
           autoComplete="new-password"
         />
       </div>
 
-      {error ? <p className={`text-sm text-[color:var(--color-danger)] ${isRtl ? 'text-right' : ''}`}>{error}</p> : null}
+      {error ? (
+        <p role="alert" className={`text-sm text-[color:var(--color-danger)] ${isRtl ? 'text-right' : ''}`}>
+          {error}
+        </p>
+      ) : null}
 
       <button
         type="submit"

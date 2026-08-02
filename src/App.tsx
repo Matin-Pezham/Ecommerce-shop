@@ -5,13 +5,13 @@ import { LanguageProvider } from '@/i18n'
 function App() {
   return (
     <ErrorBoundary>
-      <ReduxProvider>
-        <QueryProvider>
-          <LanguageProvider>
+      <LanguageProvider>
+        <ReduxProvider>
+          <QueryProvider>
             <RouterProvider />
-          </LanguageProvider>
-        </QueryProvider>
-      </ReduxProvider>
+          </QueryProvider>
+        </ReduxProvider>
+      </LanguageProvider>
     </ErrorBoundary>
   )
 }

@@ -1,75 +1,42 @@
-# React + TypeScript + Vite
+# Northstar Commerce
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Northstar Commerce is a React, TypeScript, and Vite storefront demo that uses Redux Toolkit, React Query, React Router, and MSW.
 
-Currently, two official plugins are available:
+## Architecture
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The app keeps UI state in Redux, server state in React Query, and product data in a single API boundary under `src/features/products/api`. Pages and components consume query hooks rather than importing catalog fixtures directly.
 
-## React Compiler
+## Data Flow
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Shop filters live in the URL. `useProductFilters` parses and writes search params, `mapShopFiltersToProductParams` converts them into API params, the product API validates requests and responses, and MSW mirrors the same contract for local development and tests.
 
-## Expanding the ESLint configuration
+## Demo Authentication
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Authentication is demo-only. The mock auth adapter is isolated behind `src/features/auth/authAdapter.ts`, and production mode rejects demo auth instead of pretending to provide real security.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Mock API Mode
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Set `VITE_APP_MODE=demo` to use the mock API and mock auth. Set `VITE_APP_MODE=production` only when a real API base URL is available and mock flags are disabled. `VITE_` variables are public client configuration and must never contain secrets.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Environment
 
+`VITE_API_BASE_URL` is required in production mode. Boolean flags are parsed explicitly, and invalid production configuration fails during startup.
+
+## Scripts
+
+```bash
+npm run dev
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+npm run audit:high
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Testing Strategy
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Tests cover the product API boundary, shop filter integration, selector memoization, environment validation, store persistence, and auth storage behavior. MSW is used in tests to keep request and response handling realistic.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Trade-offs
 
-```
+The product and auth experiences are intentionally demo-scoped. The code favors explicit failure over silent fallbacks, and production mode requires a real backend before those flows can be considered secure.

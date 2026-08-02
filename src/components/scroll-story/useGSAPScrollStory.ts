@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap/dist/gsap.js'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger.js'
 import type { RefObject } from 'react'
@@ -16,9 +16,7 @@ type UseGSAPScrollStoryResult = {
   shapeARef: RefObject<HTMLDivElement | null>
   shapeBRef: RefObject<HTMLDivElement | null>
   phase: StoryPhase
-  progress: number
   reducedMotion: boolean
-  timeline: gsap.core.Timeline | null
 }
 
 export function useGSAPScrollStory(): UseGSAPScrollStoryResult {
@@ -30,25 +28,21 @@ export function useGSAPScrollStory(): UseGSAPScrollStoryResult {
   const shapeARef = useRef<HTMLDivElement | null>(null)
   const shapeBRef = useRef<HTMLDivElement | null>(null)
   const timelineRef = useRef<gsap.core.Timeline | null>(null)
+  const progressRef = useRef(0)
+  const phaseRef = useRef<StoryPhase>('phase-1')
   const [phase, setPhase] = useState<StoryPhase>('phase-1')
-  const [progress, setProgress] = useState(0)
   const [reducedMotion, setReducedMotion] = useState(false)
-  const [timeline, setTimeline] = useState<gsap.core.Timeline | null>(null)
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
     const updatePreference = () => setReducedMotion(mediaQuery.matches)
     updatePreference()
     mediaQuery.addEventListener('change', updatePreference)
-    const activeContainer = containerRef.current
 
     const ctx = gsap.context(() => {
       if (reducedMotion) {
+        phaseRef.current = 'phase-4'
         setPhase('phase-4')
-        setProgress(1)
-        setTimeline(null)
-        timelineRef.current?.kill()
-        timelineRef.current = null
         return
       }
 
@@ -68,8 +62,12 @@ export function useGSAPScrollStory(): UseGSAPScrollStoryResult {
           invalidateOnRefresh: true,
           onUpdate: (self: ScrollTrigger) => {
             const nextPhase = getStoryPhase(self.progress)
-            setPhase(nextPhase)
-            setProgress(self.progress)
+            progressRef.current = self.progress
+
+            if (phaseRef.current !== nextPhase) {
+              phaseRef.current = nextPhase
+              setPhase(nextPhase)
+            }
           },
         },
       })
@@ -114,7 +112,6 @@ export function useGSAPScrollStory(): UseGSAPScrollStoryResult {
       })
 
       timelineRef.current = tl
-      setTimeline(tl)
     }, containerRef)
 
     return () => {
@@ -122,29 +119,18 @@ export function useGSAPScrollStory(): UseGSAPScrollStoryResult {
       ctx.revert()
       timelineRef.current?.kill()
       timelineRef.current = null
-      setTimeline(null)
-      ScrollTrigger.getAll().forEach((trigger: ScrollTrigger) => {
-        if (trigger.trigger === activeContainer) {
-          trigger.kill()
-        }
-      })
     }
   }, [reducedMotion])
 
-  return useMemo(
-    () => ({
-      containerRef,
-      sceneRef,
-      productRef,
-      glowRef,
-      shadowRef,
-      shapeARef,
-      shapeBRef,
-      phase,
-      progress,
-      reducedMotion,
-      timeline,
-    }),
-    [phase, progress, reducedMotion, timeline],
-  )
+  return {
+    containerRef,
+    sceneRef,
+    productRef,
+    glowRef,
+    shadowRef,
+    shapeARef,
+    shapeBRef,
+    phase,
+    reducedMotion,
+  }
 }

@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit'
 import { calculateCartPriceSummary } from '@/features/cart/priceUtils'
 import type { RootState } from '@/store'
 
@@ -7,7 +8,10 @@ export const selectCartIsDrawerOpen = (state: RootState) => state.cart.isDrawerO
 
 export const selectCartShowAddedFeedback = (state: RootState) => state.cart.showAddedFeedback
 
-export const selectCartSummary = (state: RootState) => calculateCartPriceSummary(state.cart.items)
+export const selectCartSummary = createSelector(
+  [(state: RootState) => state.cart.items],
+  (items) => calculateCartPriceSummary(items),
+)
 
 export const selectCartTotalQuantity = (state: RootState) =>
   state.cart.items.reduce((sum, item) => sum + item.quantity, 0)

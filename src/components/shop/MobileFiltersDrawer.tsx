@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { useTranslation } from '@/i18n'
+import { useBodyScrollLock } from '@/components/layout/useBodyScrollLock'
 
 type MobileFiltersDrawerProps = {
   open: boolean
@@ -12,6 +13,7 @@ type MobileFiltersDrawerProps = {
 
 export function MobileFiltersDrawer({ open, onClose, onApply, onClear, children }: MobileFiltersDrawerProps) {
   const { t, isRtl } = useTranslation()
+  useBodyScrollLock(open)
 
   if (!open) return null
 

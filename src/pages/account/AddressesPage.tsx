@@ -1,9 +1,10 @@
 import { AccountHeader } from '@/components/account/AccountHeader'
+import { selectSavedAddresses } from '@/features/user/userSelectors'
 import { useTranslation } from '@/i18n'
 import { useAppSelector } from '@/store/hooks'
 
 export function AddressesPage() {
-  const { addresses } = useAppSelector((state) => state.user)
+  const addresses = useAppSelector(selectSavedAddresses)
   const { t, isRtl } = useTranslation()
 
   return (

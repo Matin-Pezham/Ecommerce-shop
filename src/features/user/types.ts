@@ -1,5 +1,3 @@
-export type UserRole = 'customer' | 'admin'
-
 export type LoyaltyLevel = 'Silver' | 'Gold' | 'Platinum' | 'Emerald'
 
 export type Address = {
@@ -14,24 +12,14 @@ export type Address = {
   isDefault: boolean
 }
 
-export type User = {
-  id: string
-  firstName: string
-  lastName: string
-  fullName: string
-  email: string
-  phone: string
-  avatarUrl: string
-  createdAt: string
-  role: UserRole
+export type CustomerAccountStats = {
   loyaltyLevel: LoyaltyLevel
   totalOrders: number
   totalSpent: number
-  defaultAddressId: string
+  defaultAddressId: string | null
 }
 
 export type UserState = {
-  user: User
+  stats: CustomerAccountStats
   addresses: Address[]
-  isAuthenticated: boolean
 }

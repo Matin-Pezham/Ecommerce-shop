@@ -2,7 +2,7 @@ import { ArrowRight, Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from '@/i18n'
 
-type PlaceholderPageProps = {
+export type PlaceholderPageProps = {
   titleKey: string
   descriptionKey: string
   ctaHref: string

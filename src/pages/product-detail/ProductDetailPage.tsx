@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ProductBreadcrumbs } from '@/components/product-detail/ProductBreadcrumbs'
 import { ProductGallery } from '@/components/product-detail/ProductGallery'
@@ -11,12 +11,15 @@ import { ProductInfoPanel } from '@/components/product-detail/ProductInfoPanel'
 import { RelatedProducts } from '@/components/product-detail/RelatedProducts'
 import { Container } from '@/components/layout/Container'
 import { productCategories } from '@/data/categories'
-import { productsCatalog } from '@/data/products'
 import { createCartItemFromProduct, getLocalizedText } from '@/features/products/productUtils'
 import { addItem } from '@/features/cart/cartSlice'
 import { addToWishlist, removeFromWishlist } from '@/features/wishlist/wishlistSlice'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { useTranslation } from '@/i18n'
+import { LoadingState } from '@/components/common/LoadingState'
+import { useProductQuery } from '@/features/products/queries/useProductQuery'
+import { useProductsQuery } from '@/features/products/queries/useProductsQuery'
+import { isAppError } from '@/services/appError'
 
 function ProductNotFoundState() {
   const { t, isRtl } = useTranslation()
@@ -48,27 +51,65 @@ export default function ProductDetailPage() {
   const { t, locale, isRtl } = useTranslation()
 
   const wishlistItems = useAppSelector((state) => state.wishlist.items)
+  const { data: product, isPending, error } = useProductQuery(slug)
+  
+  // Fetch related products by category, excluding current product
+  const { data: relatedData } = useProductsQuery(
+    product ? { categoryId: product.categoryId, pageSize: 5 } : {}
+  )
 
-  const product = useMemo(() => productsCatalog.find((item) => item.slug === slug), [slug])
-
-  const [selectedImageId, setSelectedImageId] = useState<string | undefined>(product?.images[0]?.id)
-  const [selectedVariantId, setSelectedVariantId] = useState<string | undefined>(product?.variants[0]?.id)
-  const [selectedColorId, setSelectedColorId] = useState<string | undefined>(product?.colors[0]?.id)
-  const [selectedSizeId, setSelectedSizeId] = useState<string | undefined>(product?.sizes[0]?.id)
+  const [selection, setSelection] = useState<{
+    productId?: string
+    imageId?: string
+    variantId?: string
+    colorId?: string
+    sizeId?: string
+  }>({})
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
 
-  if (!product) return <ProductNotFoundState />
+  if (isPending && !product) {
+    return (
+      <Container className="py-20">
+        <LoadingState label={t('shop.loadingProducts')} />
+      </Container>
+    )
+  }
+
+  if (!product) {
+    if (isAppError(error) && error.kind === 'not-found') {
+      return <ProductNotFoundState />
+    }
+
+    return (
+      <Container className="py-20">
+        <div className={`mx-auto max-w-xl rounded-[2rem] border border-[color:var(--color-border)] bg-[color:var(--color-card)]/95 p-8 text-center shadow-[var(--shadow-soft)] ${isRtl ? 'text-right' : ''}`}>
+          <h1 className="font-display text-3xl text-[color:var(--color-text-primary)]">{t('shop.loadFailed')}</h1>
+          <p className="mt-3 text-sm text-[color:var(--color-text-secondary)]">{t('shop.noResultsDescription')}</p>
+          <div className={`mt-6 flex justify-center gap-3 ${isRtl ? 'flex-row-reverse' : ''}`}>
+            <Link to="/shop" className="btn-cta rounded-full px-5 py-3 text-sm font-semibold">
+              {t('productDetail.backToShop')}
+            </Link>
+          </div>
+        </div>
+      </Container>
+    )
+  }
 
   const isWishlisted = wishlistItems.some((item) => item.productId === product.id)
+  const selectionMatchesProduct = selection.productId === product.id
+  const selectedImageId = selectionMatchesProduct ? selection.imageId ?? product.images[0]?.id : product.images[0]?.id
+  const selectedVariantId = selectionMatchesProduct ? selection.variantId ?? product.variants[0]?.id : product.variants[0]?.id
+  const selectedColorId = selectionMatchesProduct ? selection.colorId ?? product.colors[0]?.id : product.colors[0]?.id
+  const selectedSizeId = selectionMatchesProduct ? selection.sizeId ?? product.sizes[0]?.id : product.sizes[0]?.id
   const selectedVariant = product.variants.find((variant) => variant.id === selectedVariantId)
   const category = productCategories.find((item) => item.id === product.categoryId)
   const categoryLabel = category ? getLocalizedText(category.name, locale) : t('productDetail.defaultCategory')
   const categoryHref = category ? `/shop?category=${category.slug || category.id}` : '/shop'
 
   const maxQuantity = Math.max(selectedVariant?.stock ?? product.stock, 1)
-  const relatedProducts = productsCatalog
-    .filter((item) => item.id !== product.id && item.categoryId === product.categoryId)
+  const relatedProducts = (relatedData?.items ?? [])
+    .filter((item) => item.id !== product.id)
     .slice(0, 4)
 
   const colorOptions = product.colors.map((color) => ({
@@ -128,7 +169,7 @@ export default function ProductDetailPage() {
           <ProductGallery
             images={product.images}
             selectedImageId={selectedImageId}
-            onSelectImage={setSelectedImageId}
+            onSelectImage={(imageId) => setSelection({ productId: product.id, imageId, variantId: selectedVariantId, colorId: selectedColorId, sizeId: selectedSizeId })}
             locale={locale}
           />
 
@@ -140,12 +181,14 @@ export default function ProductDetailPage() {
                 title={t('productDetail.variant')}
                 selectedId={selectedVariantId}
                 onSelect={(variantId) => {
-                  setSelectedVariantId(variantId)
                   const variant = product.variants.find((item) => item.id === variantId)
-                  if (!variant) return
-                  if (variant.colorId) setSelectedColorId(variant.colorId)
-                  if (variant.sizeId) setSelectedSizeId(variant.sizeId)
-                  if (variant.imageId) setSelectedImageId(variant.imageId)
+                  setSelection({
+                    productId: product.id,
+                    variantId,
+                    colorId: variant?.colorId ?? selectedColorId,
+                    sizeId: variant?.sizeId ?? selectedSizeId,
+                    imageId: variant?.imageId ?? selectedImageId,
+                  })
                 }}
                 options={variantOptions}
               />
@@ -155,7 +198,7 @@ export default function ProductDetailPage() {
               <ProductVariantSelector
                 title={t('productDetail.color')}
                 selectedId={selectedColorId}
-                onSelect={setSelectedColorId}
+                onSelect={(colorId) => setSelection({ productId: product.id, colorId, variantId: selectedVariantId, sizeId: selectedSizeId, imageId: selectedImageId })}
                 options={colorOptions}
                 type="color"
               />
@@ -165,7 +208,7 @@ export default function ProductDetailPage() {
               <ProductVariantSelector
                 title={t('productDetail.size')}
                 selectedId={selectedSizeId}
-                onSelect={setSelectedSizeId}
+                onSelect={(sizeId) => setSelection({ productId: product.id, sizeId, variantId: selectedVariantId, colorId: selectedColorId, imageId: selectedImageId })}
                 options={sizeOptions}
               />
             ) : null}

@@ -7,14 +7,16 @@ import { CollectionNotFound } from '@/components/collections/CollectionNotFound'
 import { CollectionProductGrid } from '@/components/collections/CollectionProductGrid'
 import { CollectionStats } from '@/components/collections/CollectionStats'
 import { Container } from '@/components/layout/Container'
+import { LoadingState } from '@/components/common/LoadingState'
 import { productCollections } from '@/data/collections'
-import { productsCatalog } from '@/data/products'
-import { sortProducts } from '@/features/products/filterUtils'
 import type { ProductSort } from '@/features/products/filterTypes'
 import { getLocalizedText } from '@/features/products/productUtils'
+import { useProductsQuery } from '@/features/products/queries/useProductsQuery'
+import { useCollectionCountsQuery } from '@/features/products/queries/useCollectionCountsQuery'
+import { useCollectionRelatedQuery } from '@/features/products/queries/useCollectionRelatedQuery'
 import { useTranslation } from '@/i18n'
 
-const allowedSorts: ProductSort[] = ['featured', 'newest', 'price-asc', 'price-desc', 'rating', 'bestseller']
+const allowedSorts: ProductSort[] = ['featured', 'newest', 'price-asc', 'price-desc', 'rating-desc', 'bestseller']
 
 export default function CollectionDetailPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -28,6 +30,41 @@ export default function CollectionDetailPage() {
 
   const requestedSort = searchParams.get('sort')
   const sort = requestedSort && allowedSorts.includes(requestedSort as ProductSort) ? (requestedSort as ProductSort) : 'featured'
+  
+  const { data, isPending } = useProductsQuery(
+    collection ? { collectionId: collection.id, sort, pageSize: 24 } : {}
+  )
+  
+  // Fetch all collection counts (includes stats for current collection)
+  const { data: countsData } = useCollectionCountsQuery()
+  
+  // Fetch related collections
+  const { data: relatedData } = useCollectionRelatedQuery(collection?.id)
+
+  // Compute related collections (must be before early returns per rules of hooks)
+  const relatedCollections = useMemo(() => {
+    if (!relatedData || !countsData) {
+      return []
+    }
+
+    return relatedData.related.map((related) => {
+      const collectionData = productCollections.find((c) => c.id === related.id)
+      const count = countsData.counts.find((c) => c.collectionId === related.id)
+      
+      return {
+        collection: collectionData || {
+          id: related.id,
+          slug: related.slug,
+          name: related.name,
+          description: related.description,
+          featured: related.featured,
+          heroImage: related.heroImage,
+          productIds: [],
+        },
+        count: count?.totalProducts ?? related.productCount,
+      }
+    })
+  }, [relatedData, countsData])
 
   if (!collection) {
     return (
@@ -37,21 +74,21 @@ export default function CollectionDetailPage() {
     )
   }
 
-  const rawProducts = productsCatalog.filter((product) => product.collectionIds.includes(collection.id))
-  const products = sortProducts(rawProducts, sort)
+  if (isPending && !data) {
+    return (
+      <Container className="py-16 sm:py-20">
+        <LoadingState label={t('shop.loadingProducts')} />
+      </Container>
+    )
+  }
 
-  const inStockCount = rawProducts.filter((product) => product.stock > 0).length
-  const newArrivalsCount = rawProducts.filter((product) => product.isNewArrival).length
-  const saleProductsCount = rawProducts.filter((product) => Boolean(product.compareAtPrice && product.compareAtPrice > product.price)).length
-
-  const relatedCollections = productCollections
-    .filter((item) => item.id !== collection.id)
-    .map((item) => ({
-      collection: item,
-      count: productsCatalog.filter((product) => product.collectionIds.includes(item.id)).length,
-    }))
-    .filter((entry) => entry.count > 0)
-    .slice(0, 3)
+  const products = data?.items ?? []
+  const totalProducts = data?.pagination.totalItems ?? 0
+  
+  const currentCollectionCounts = countsData?.counts.find((c) => c.collectionId === collection?.id)
+  const inStockCount = currentCollectionCounts?.inStockCount ?? 0
+  const newArrivalsCount = currentCollectionCounts?.newArrivalsCount ?? 0
+  const saleProductsCount = currentCollectionCounts?.saleCount ?? 0
 
   return (
     <div className="py-8 sm:py-10">
@@ -62,13 +99,13 @@ export default function CollectionDetailPage() {
           title={getLocalizedText(collection.name, locale)}
           description={getLocalizedText(collection.description, locale)}
           image={collection.heroImage}
-          productCount={products.length}
+          productCount={totalProducts}
           featured={collection.featured}
         />
 
         <div className="mt-6">
           <CollectionStats
-            productsCount={products.length}
+            productsCount={totalProducts}
             inStockCount={inStockCount}
             newArrivalsCount={newArrivalsCount}
             saleProductsCount={saleProductsCount}
@@ -100,7 +137,7 @@ export default function CollectionDetailPage() {
                 <option value="newest">{t('collections.newest')}</option>
                 <option value="price-asc">{t('collections.priceLowToHigh')}</option>
                 <option value="price-desc">{t('collections.priceHighToLow')}</option>
-                <option value="rating">{t('collections.bestRated')}</option>
+                <option value="rating-desc">{t('collections.bestRated')}</option>
                 <option value="bestseller">{t('collections.bestSelling')}</option>
               </select>
             </label>

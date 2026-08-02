@@ -1,8 +1,9 @@
 import { FeaturedProductsSection } from '@/components/products/FeaturedProductsSection'
-import { selectNewArrivals } from '@/features/products/productSelectors'
+import { useProductsQuery } from '@/features/products/queries/useProductsQuery'
 
 export function NewArrivalsPage() {
-  const newArrivals = selectNewArrivals()
+  const { data } = useProductsQuery({ newArrival: true, sort: 'newest', pageSize: 12 })
+  const newArrivals = data?.items ?? []
 
   return (
     <FeaturedProductsSection

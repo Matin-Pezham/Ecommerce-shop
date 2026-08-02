@@ -14,6 +14,7 @@ import {
 } from '@/features/cart/selectors'
 import { useTranslation } from '@/i18n'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { useBodyScrollLock } from '@/components/layout/useBodyScrollLock'
 
 export function CartDrawer() {
   const dispatch = useAppDispatch()
@@ -25,11 +26,10 @@ export function CartDrawer() {
   const summary = useAppSelector(selectCartSummary)
   const dialogRef = useRef<HTMLDivElement | null>(null)
 
+  useBodyScrollLock(isOpen)
+
   useEffect(() => {
     if (!isOpen) return
-
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -41,7 +41,6 @@ export function CartDrawer() {
     window.setTimeout(() => dialogRef.current?.focus(), 0)
 
     return () => {
-      document.body.style.overflow = previousOverflow
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [dispatch, isOpen])

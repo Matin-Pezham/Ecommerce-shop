@@ -1,15 +1,6 @@
-import type { Address, User } from './types'
+import type { Address, CustomerAccountStats } from './types'
 
-export const mockUser: User = {
-  id: 'usr_001',
-  firstName: 'Elena',
-  lastName: 'Moreno',
-  fullName: 'Elena Moreno',
-  email: 'elena@ateliernorth.com',
-  phone: '+1 (415) 555-0184',
-  avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80',
-  createdAt: '2023-10-22',
-  role: 'customer',
+export const mockCustomerAccountStats: CustomerAccountStats = {
   loyaltyLevel: 'Platinum',
   totalOrders: 8,
   totalSpent: 18450,

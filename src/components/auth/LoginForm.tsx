@@ -1,12 +1,9 @@
-import { useState } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { AuthFormField } from '@/components/auth/AuthFormField'
+import { createLoginValidationSchema, type LoginFormValues } from '@/features/auth/loginValidation'
 import { useTranslation } from '@/i18n'
-
-type LoginFormValues = {
-  email: string
-  password: string
-}
 
 type LoginFormProps = {
   loading: boolean
@@ -16,31 +13,40 @@ type LoginFormProps = {
 
 export function LoginForm({ loading, error, onSubmit }: LoginFormProps) {
   const { t, isRtl } = useTranslation()
-  const [values, setValues] = useState<LoginFormValues>({ email: '', password: '' })
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof LoginFormValues, string>>>({})
+  const schema = createLoginValidationSchema({
+    requiredField: t('auth.requiredField'),
+    invalidEmail: t('auth.invalidEmail'),
+  })
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(schema),
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
 
-    const nextErrors: Partial<Record<keyof LoginFormValues, string>> = {}
-    if (!values.email.trim()) nextErrors.email = t('auth.requiredField')
-    if (!values.password.trim()) nextErrors.password = t('auth.requiredField')
-
-    setFieldErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) return
-
+  const submitLogin = (values: LoginFormValues) => {
+    if (loading) {
+      return
+    }
     onSubmit(values)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(submitLogin)} aria-busy={loading ? 'true' : undefined} className="space-y-4">
       <AuthFormField
         id="auth-login-email"
         type="email"
         label={t('auth.email')}
-        value={values.email}
-        error={fieldErrors.email}
-        onChange={(event) => setValues((prev) => ({ ...prev, email: event.target.value }))}
+        error={errors.email?.message}
+        {...register('email')}
         autoComplete="email"
       />
 
@@ -48,9 +54,8 @@ export function LoginForm({ loading, error, onSubmit }: LoginFormProps) {
         id="auth-login-password"
         type="password"
         label={t('auth.password')}
-        value={values.password}
-        error={fieldErrors.password}
-        onChange={(event) => setValues((prev) => ({ ...prev, password: event.target.value }))}
+        error={errors.password?.message}
+        {...register('password')}
         autoComplete="current-password"
       />
 

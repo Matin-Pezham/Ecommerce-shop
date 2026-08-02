@@ -11,6 +11,7 @@ import { selectCartTotalQuantity } from '@/features/cart/selectors'
 import { useTranslation } from '@/i18n'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { cn } from '@/utils/cn'
+import { useBodyScrollLock } from './useBodyScrollLock'
 
 type NavbarProps = {
   isScrolled?: boolean
@@ -48,16 +49,7 @@ function NavbarInner({ isScrolled = false }: NavbarProps) {
     return pathname === href || pathname.startsWith(`${href}/`)
   }
 
-  useEffect(() => {
-    const shouldLockScroll = isMobileOpen || isSearchOpen
-    document.body.style.overflow = shouldLockScroll ? 'hidden' : ''
-    document.body.style.touchAction = shouldLockScroll ? 'none' : ''
-
-    return () => {
-      document.body.style.overflow = ''
-      document.body.style.touchAction = ''
-    }
-  }, [isMobileOpen, isSearchOpen])
+  useBodyScrollLock(isMobileOpen || isSearchOpen)
 
   useEffect(() => {
     if (!isAccountMenuOpen) return

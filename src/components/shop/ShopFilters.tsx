@@ -91,47 +91,51 @@ export function ShopFilters({ filters, options, onChange, onClearAll, compact = 
         </div>
       </section>
 
-      <section className={compact ? 'space-y-1.5' : 'space-y-2'}>
-        <h3 className="text-xs uppercase tracking-[0.12em] text-[color:var(--color-text-secondary)]">{t('shop.colors')}</h3>
-        <div className="flex flex-wrap gap-2">
-          {options.colors.map((color) => (
-            <button
-              key={color.id}
-              type="button"
-              onClick={() => onChange('color', filters.color === color.id ? undefined : color.id)}
-              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition ${
-                filters.color === color.id
-                  ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)]'
-                  : 'border-[color:var(--color-border)] text-[color:var(--color-text-secondary)]'
-              } ${isRtl ? 'flex-row-reverse' : ''}`}
-              aria-label={getLocalizedText(color.name, locale)}
-            >
-              <span className="h-3 w-3 rounded-full border border-black/10" style={{ backgroundColor: color.hex }} />
-              <span>{getLocalizedText(color.name, locale)}</span>
-            </button>
-          ))}
-        </div>
-      </section>
+      {options.colors.length > 0 ? (
+        <section className={compact ? 'space-y-1.5' : 'space-y-2'}>
+          <h3 className="text-xs uppercase tracking-[0.12em] text-[color:var(--color-text-secondary)]">{t('shop.colors')}</h3>
+          <div className="flex flex-wrap gap-2">
+            {options.colors.map((color) => (
+              <button
+                key={color.id}
+                type="button"
+                onClick={() => onChange('color', filters.color === color.id ? undefined : color.id)}
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition ${
+                  filters.color === color.id
+                    ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)]'
+                    : 'border-[color:var(--color-border)] text-[color:var(--color-text-secondary)]'
+                } ${isRtl ? 'flex-row-reverse' : ''}`}
+                aria-label={getLocalizedText(color.name, locale)}
+              >
+                <span className="h-3 w-3 rounded-full border border-black/10" style={{ backgroundColor: color.hex }} />
+                <span>{getLocalizedText(color.name, locale)}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-      <section className={compact ? 'space-y-1.5' : 'space-y-2'}>
-        <h3 className="text-xs uppercase tracking-[0.12em] text-[color:var(--color-text-secondary)]">{t('shop.sizes')}</h3>
-        <div className="flex flex-wrap gap-2">
-          {options.sizes.map((size) => (
-            <button
-              key={size.id}
-              type="button"
-              onClick={() => onChange('size', filters.size === size.id ? undefined : size.id)}
-              className={`rounded-full border px-3 py-1.5 text-xs transition ${
-                filters.size === size.id
-                  ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)]'
-                  : 'border-[color:var(--color-border)] text-[color:var(--color-text-secondary)]'
-              }`}
-            >
-              {size.label}
-            </button>
-          ))}
-        </div>
-      </section>
+      {options.sizes.length > 0 ? (
+        <section className={compact ? 'space-y-1.5' : 'space-y-2'}>
+          <h3 className="text-xs uppercase tracking-[0.12em] text-[color:var(--color-text-secondary)]">{t('shop.sizes')}</h3>
+          <div className="flex flex-wrap gap-2">
+            {options.sizes.map((size) => (
+              <button
+                key={size.id}
+                type="button"
+                onClick={() => onChange('size', filters.size === size.id ? undefined : size.id)}
+                className={`rounded-full border px-3 py-1.5 text-xs transition ${
+                  filters.size === size.id
+                    ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)]'
+                    : 'border-[color:var(--color-border)] text-[color:var(--color-text-secondary)]'
+                }`}
+              >
+                {size.label}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className={compact ? 'space-y-1.5' : 'space-y-2'}>
         <h3 className="text-xs uppercase tracking-[0.12em] text-[color:var(--color-text-secondary)]">{t('shop.priceRange')}</h3>

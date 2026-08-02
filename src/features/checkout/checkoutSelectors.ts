@@ -1,3 +1,4 @@
+import { createSelector } from '@reduxjs/toolkit'
 import { calculateCheckoutSummary } from '@/features/checkout/checkoutUtils'
 import type { RootState } from '@/store'
 
@@ -19,10 +20,10 @@ export const selectSubmittedOrders = (state: RootState) => state.checkout.submit
 
 export const selectLastOrderId = (state: RootState) => state.checkout.lastOrderId
 
-export const selectCheckoutSummary = (state: RootState) => {
-  const deliveryPrice = state.checkout.deliveryMethod?.price ?? 0
-  return calculateCheckoutSummary(state.cart.items, deliveryPrice)
-}
+export const selectCheckoutSummary = createSelector(
+  [(state: RootState) => state.cart.items, (state: RootState) => state.checkout.deliveryMethod?.price ?? 0],
+  (items, deliveryPrice) => calculateCheckoutSummary(items, deliveryPrice),
+)
 
 export const selectCheckoutShippingReady = (state: RootState) => {
   const customer = state.checkout.customerInfo

@@ -1,11 +1,41 @@
+import { useMemo } from 'react'
 import { CollectionCard } from '@/components/collections/CollectionCard'
 import { Container } from '@/components/layout/Container'
+import { LoadingState } from '@/components/common/LoadingState'
 import { productCollections } from '@/data/collections'
-import { productsCatalog } from '@/data/products'
+import { useCollectionCountsQuery } from '@/features/products/queries/useCollectionCountsQuery'
 import { useTranslation } from '@/i18n'
 
 export function CollectionsPage() {
   const { t, isRtl } = useTranslation()
+  
+  // Fetch all collection counts in a single request
+  const { data: countsData, isPending } = useCollectionCountsQuery()
+
+  const collectionsWithCounts = useMemo(() => {
+    if (!countsData) {
+      return productCollections.map((collection) => ({
+        collection,
+        productCount: 0,
+      }))
+    }
+
+    return productCollections.map((collection) => {
+      const count = countsData.counts.find((c) => c.collectionId === collection.id)
+      return {
+        collection,
+        productCount: count?.totalProducts ?? 0,
+      }
+    })
+  }, [countsData])
+
+  if (isPending) {
+    return (
+      <Container className="py-8 sm:py-10">
+        <LoadingState label={t('shop.loadingProducts')} />
+      </Container>
+    )
+  }
 
   return (
     <Container className="py-8 sm:py-10">
@@ -18,10 +48,9 @@ export function CollectionsPage() {
       </section>
 
       <section className="grid gap-6 md:grid-cols-2">
-        {productCollections.map((collection) => {
-          const productCount = productsCatalog.filter((product) => product.collectionIds.includes(collection.id)).length
-          return <CollectionCard key={collection.id} collection={collection} productCount={productCount} />
-        })}
+        {collectionsWithCounts.map(({ collection, productCount }) => (
+          <CollectionCard key={collection.id} collection={collection} productCount={productCount} />
+        ))}
       </section>
     </Container>
   )

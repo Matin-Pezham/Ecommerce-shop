@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Container } from '@/components/layout/Container'
+import { LoadingState } from '@/components/common/LoadingState'
 import { FilterChips } from '@/components/products/FilterChips'
 import { ProductsCarousel } from '@/components/products/ProductsCarousel'
 import { ProductsGrid } from '@/components/products/ProductsGrid'
 import { SectionHeader } from '@/components/products/SectionHeader'
-import { productsCatalog } from '@/data/products'
+import { useProductsQuery } from '@/features/products/queries/useProductsQuery'
 import { useTranslation } from '@/i18n'
 import type { Product } from '@/features/products/types'
 
@@ -17,23 +18,34 @@ type FeaturedProductsSectionProps = {
 }
 
 export function FeaturedProductsSection({
-  products = productsCatalog,
+  products,
   labelKey = 'featured.exhibition',
   titleKey = 'featured.title',
   descriptionKey = 'featured.description',
   showFilters = true,
 }: FeaturedProductsSectionProps) {
   const [activeCategory, setActiveCategory] = useState<string | 'all'>('all')
-
-  const filteredProducts = useMemo(() => {
-    if (!showFilters || activeCategory === 'all') {
-      return products
-    }
-
-    return products.filter((product) => product.categoryId === activeCategory)
-  }, [activeCategory, products, showFilters])
+  const productQuery = useProductsQuery({
+    featured: true,
+    ...(showFilters && activeCategory !== 'all' ? { categoryId: activeCategory } : {}),
+    pageSize: 12,
+  })
+  
+  // Use provided products or fetched products
+  const sourceProducts = useMemo(() => {
+    if (products) return products
+    return productQuery.data?.items ?? []
+  }, [products, productQuery.data?.items])
 
   const { t } = useTranslation()
+
+  if (!products && productQuery.isPending && !productQuery.data) {
+    return (
+      <Container>
+        <LoadingState label={t('shop.loadingProducts')} />
+      </Container>
+    )
+  }
 
   return (
     <Container>
@@ -45,13 +57,13 @@ export function FeaturedProductsSection({
         >
           <div className="flex flex-col gap-4">
             {showFilters ? <FilterChips activeCategory={activeCategory} onChange={setActiveCategory} /> : null}
-            <p className="text-sm text-[color:var(--color-text-secondary)]">{t('featured.showing', { count: filteredProducts.length, total: products.length })}</p>
+            <p className="text-sm text-[color:var(--color-text-secondary)]">{t('featured.showing', { count: sourceProducts.length, total: sourceProducts.length })}</p>
           </div>
         </SectionHeader>
 
         <div className="hidden xl:block">
-          {filteredProducts.length > 0 ? (
-            <ProductsGrid products={filteredProducts} />
+          {sourceProducts.length > 0 ? (
+            <ProductsGrid products={sourceProducts} />
           ) : (
             <div className="rounded-[1.5rem] border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 p-8 text-center">
               <h3 className="text-xl font-semibold text-[color:var(--color-text-primary)]">{t('product.noProductsTitle')}</h3>
@@ -61,8 +73,8 @@ export function FeaturedProductsSection({
         </div>
 
         <div className="block xl:hidden">
-          {filteredProducts.length > 0 ? (
-            <ProductsCarousel products={filteredProducts} />
+          {sourceProducts.length > 0 ? (
+            <ProductsCarousel products={sourceProducts} />
           ) : (
             <div className="rounded-[1.5rem] border border-[color:var(--color-border)] bg-[color:var(--color-card)]/90 p-8 text-center">
               <h3 className="text-xl font-semibold text-[color:var(--color-text-primary)]">{t('product.noProductsTitle')}</h3>

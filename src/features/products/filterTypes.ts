@@ -1,6 +1,6 @@
 import type { Locale } from '@/i18n'
 
-export type ProductSort = 'featured' | 'newest' | 'price-asc' | 'price-desc' | 'rating' | 'bestseller'
+export type ProductSort = 'featured' | 'newest' | 'price-asc' | 'price-desc' | 'rating-desc' | 'bestseller'
 
 export type AvailabilityFilter = 'all' | 'in-stock' | 'out-of-stock' | 'low-stock'
 
@@ -17,6 +17,8 @@ export type ProductFilters = {
   availability?: AvailabilityFilter
   badge?: BadgeFilter
   sort?: ProductSort
+  page?: number
+  pageSize?: number
 }
 
 export type ActiveFilterKey = keyof ProductFilters

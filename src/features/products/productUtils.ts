@@ -1,6 +1,5 @@
 import { productCategories } from '@/data/categories'
 import { productCollections } from '@/data/collections'
-import { productsCatalog } from '@/data/products'
 import type { ProductCartItem } from '@/features/cart/types'
 import type {
   LocalizedText,
@@ -15,50 +14,6 @@ const DEFAULT_IMAGE_URL = 'https://images.unsplash.com/photo-1441986300917-64674
 
 export function getLocalizedText(value: LocalizedText, language: SupportedLocale): string {
   return value[language]
-}
-
-export function getProductBySlug(slug: string): Product | undefined {
-  return productsCatalog.find((product) => product.slug === slug)
-}
-
-export function getProductById(id: string): Product | undefined {
-  return productsCatalog.find((product) => product.id === id)
-}
-
-export function getProductsByCategory(categoryId: string): Product[] {
-  return productsCatalog.filter((product) => product.categoryId === categoryId)
-}
-
-export function getProductsByCollection(collectionId: string): Product[] {
-  return productsCatalog.filter((product) => product.collectionIds.includes(collectionId))
-}
-
-export function getFeaturedProducts(): Product[] {
-  return productsCatalog.filter((product) => product.isFeatured)
-}
-
-export function getNewArrivals(): Product[] {
-  return productsCatalog.filter((product) => product.isNewArrival)
-}
-
-export function getRelatedProducts(productId: string, limit = 4): Product[] {
-  const target = getProductById(productId)
-  if (!target) return []
-
-  const scored = productsCatalog
-    .filter((product) => product.id !== productId)
-    .map((product) => {
-      let score = 0
-      if (product.categoryId === target.categoryId) score += 3
-      const sharedCollections = product.collectionIds.filter((id) => target.collectionIds.includes(id)).length
-      score += sharedCollections * 2
-      if (product.isFeatured) score += 1
-      return { product, score }
-    })
-    .filter((entry) => entry.score > 0)
-    .sort((a, b) => b.score - a.score)
-
-  return scored.slice(0, limit).map((entry) => entry.product)
 }
 
 export function getProductMainImage(product: Product): ProductImage {

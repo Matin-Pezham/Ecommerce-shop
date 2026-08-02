@@ -1,7 +1,9 @@
+import { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { GuestOnlyRoute } from '@/components/auth/GuestOnlyRoute'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { Layout } from '@/layouts/Layout'
+import { RouteLoadingState } from '@/components/common/RouteLoadingState'
 import { HeroSectionPage } from '@/components/sections/HeroSectionPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { AccountLayout } from '@/pages/account/AccountLayout'
@@ -29,40 +31,42 @@ import { ShopPage } from '@/pages/shop/ShopPage'
 
 export function AppRoutes() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route index element={<Navigate to="/home" replace />} />
-        <Route path="/home" element={<HeroSectionPage />} />
-        <Route path="/shop" element={<ShopPage />} />
-        <Route path="/products/:slug" element={<ProductDetailPage />} />
-        <Route path="/collections" element={<CollectionsPage />} />
-        <Route path="/collections/:slug" element={<CollectionDetailPage />} />
-        <Route path="/new-arrivals" element={<NewArrivalsPage />} />
-        <Route path="/journal" element={<PlaceholderPage titleKey="nav.journalPlaceholderTitle" descriptionKey="nav.journalPlaceholderDescription" ctaHref="/about" ctaLabelKey="nav.about" />} />
-        <Route path="/about" element={<PlaceholderPage titleKey="nav.aboutPlaceholderTitle" descriptionKey="nav.aboutPlaceholderDescription" ctaHref="/shop" ctaLabelKey="nav.shopNow" />} />
-        <Route path="/wishlist" element={<WishlistPage />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/login" element={<GuestOnlyRoute><LoginPage /></GuestOnlyRoute>} />
-        <Route path="/register" element={<GuestOnlyRoute><RegisterPage /></GuestOnlyRoute>} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/checkout" element={<ProtectedRoute><CheckoutLayout /></ProtectedRoute>}>
-          <Route index element={<Navigate to="/checkout/shipping" replace />} />
-          <Route path="shipping" element={<CheckoutShippingPage />} />
-          <Route path="payment" element={<CheckoutPaymentPage />} />
-          <Route path="review" element={<CheckoutReviewPage />} />
-        </Route>
-        <Route path="/order-success/:orderId" element={<ProtectedRoute><OrderSuccessPage /></ProtectedRoute>} />
+    <Suspense fallback={<RouteLoadingState />}>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route index element={<Navigate to="/home" replace />} />
+          <Route path="/home" element={<HeroSectionPage />} />
+          <Route path="/shop" element={<ShopPage />} />
+          <Route path="/products/:slug" element={<ProductDetailPage />} />
+          <Route path="/collections" element={<CollectionsPage />} />
+          <Route path="/collections/:slug" element={<CollectionDetailPage />} />
+          <Route path="/new-arrivals" element={<NewArrivalsPage />} />
+          <Route path="/journal" element={<PlaceholderPage titleKey="nav.journalPlaceholderTitle" descriptionKey="nav.journalPlaceholderDescription" ctaHref="/about" ctaLabelKey="nav.about" />} />
+          <Route path="/about" element={<PlaceholderPage titleKey="nav.aboutPlaceholderTitle" descriptionKey="nav.aboutPlaceholderDescription" ctaHref="/shop" ctaLabelKey="nav.shopNow" />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/login" element={<GuestOnlyRoute><LoginPage /></GuestOnlyRoute>} />
+          <Route path="/register" element={<GuestOnlyRoute><RegisterPage /></GuestOnlyRoute>} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/checkout" element={<ProtectedRoute><CheckoutLayout /></ProtectedRoute>}>
+            <Route index element={<Navigate to="/checkout/shipping" replace />} />
+            <Route path="shipping" element={<CheckoutShippingPage />} />
+            <Route path="payment" element={<CheckoutPaymentPage />} />
+            <Route path="review" element={<CheckoutReviewPage />} />
+          </Route>
+          <Route path="/order-success/:orderId" element={<ProtectedRoute><OrderSuccessPage /></ProtectedRoute>} />
 
-        <Route path="/account" element={<ProtectedRoute><AccountLayout /></ProtectedRoute>}>
-          <Route index element={<AccountOverview />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="addresses" element={<AddressesPage />} />
-          <Route path="orders" element={<OrdersPage />} />
-          <Route path="wishlist" element={<WishlistPage />} />
-          <Route path="settings" element={<AccountSettingsPage />} />
+          <Route path="/account" element={<ProtectedRoute><AccountLayout /></ProtectedRoute>}>
+            <Route index element={<AccountOverview />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="addresses" element={<AddressesPage />} />
+            <Route path="orders" element={<OrdersPage />} />
+            <Route path="wishlist" element={<WishlistPage />} />
+            <Route path="settings" element={<AccountSettingsPage />} />
+          </Route>
         </Route>
-      </Route>
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Suspense>
   )
 }

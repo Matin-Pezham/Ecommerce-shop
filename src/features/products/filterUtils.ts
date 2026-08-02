@@ -13,7 +13,7 @@ import type {
   ProductSort,
 } from './filterTypes'
 
-const validSortValues: ProductSort[] = ['featured', 'newest', 'price-asc', 'price-desc', 'rating', 'bestseller']
+const validSortValues: ProductSort[] = ['featured', 'newest', 'price-asc', 'price-desc', 'rating-desc', 'bestseller']
 const validAvailabilityValues: AvailabilityFilter[] = ['all', 'in-stock', 'out-of-stock', 'low-stock']
 const validBadgeValues: BadgeFilter[] = ['new', 'sale', 'limited', 'featured', 'bestseller']
 
@@ -60,6 +60,13 @@ function parseNumeric(value: string | null): number | undefined {
   return parsed
 }
 
+function parsePositiveInteger(value: string | null): number | undefined {
+  if (!value) return undefined
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed <= 0) return undefined
+  return parsed
+}
+
 export function parseFiltersFromSearchParams(searchParams: URLSearchParams): ProductFilters {
   const search = searchParams.get('search')?.trim() || undefined
   const category = normalizeCategory(searchParams.get('category'))
@@ -71,6 +78,8 @@ export function parseFiltersFromSearchParams(searchParams: URLSearchParams): Pro
   const availabilityParam = searchParams.get('availability')
   const badgeParam = searchParams.get('badge')
   const sortParam = searchParams.get('sort')
+  const page = parsePositiveInteger(searchParams.get('page'))
+  const pageSize = parsePositiveInteger(searchParams.get('pageSize'))
   const availability = isValidAvailability(availabilityParam) ? availabilityParam : undefined
   const badge = isValidBadge(badgeParam) ? badgeParam : undefined
   const sort = isValidSort(sortParam) ? sortParam : undefined
@@ -86,6 +95,8 @@ export function parseFiltersFromSearchParams(searchParams: URLSearchParams): Pro
     availability: availability ?? defaultFilters.availability,
     badge,
     sort: sort ?? defaultFilters.sort,
+    page,
+    pageSize,
   }
 }
 
@@ -108,6 +119,10 @@ export function createSearchParamsFromFilters(filters: ProductFilters): URLSearc
   if (filters.availability && filters.availability !== 'all') params.set('availability', filters.availability)
   if (filters.badge) params.set('badge', filters.badge)
   if (filters.sort && filters.sort !== 'featured') params.set('sort', filters.sort)
+  if (typeof filters.page === 'number' && filters.page > 1) params.set('page', String(filters.page))
+  if (typeof filters.pageSize === 'number' && filters.pageSize > 0 && filters.pageSize !== 12) {
+    params.set('pageSize', String(filters.pageSize))
+  }
 
   return params
 }
@@ -174,7 +189,7 @@ export function sortProducts(products: Product[], sort: ProductSort = 'featured'
       return list.sort((a, b) => a.price - b.price)
     case 'price-desc':
       return list.sort((a, b) => b.price - a.price)
-    case 'rating':
+    case 'rating-desc':
       return list.sort((a, b) => b.rating - a.rating)
     case 'bestseller':
       return list.sort((a, b) => {
@@ -260,6 +275,21 @@ export function hasActiveFilters(filters: ProductFilters): boolean {
       (filters.availability && filters.availability !== 'all') ||
       filters.badge ||
       (filters.sort && filters.sort !== 'featured'),
+  )
+}
+
+export function isResultDefiningFilter(key: keyof ProductFilters): boolean {
+  return (
+    key === 'search'
+    || key === 'category'
+    || key === 'collection'
+    || key === 'color'
+    || key === 'size'
+    || key === 'badge'
+    || key === 'minPrice'
+    || key === 'maxPrice'
+    || key === 'availability'
+    || key === 'sort'
   )
 }
 

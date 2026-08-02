@@ -1,14 +1,12 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { mockForgotPassword, mockLogin, mockRegister } from '@/features/auth/mockAuth'
+import { requestDemoPasswordReset, registerWithDemoAuth, signInWithDemoAuth } from '@/features/auth/authAdapter'
 import type { AuthState, AuthUser, LoginPayload, RegisterPayload } from '@/features/auth/types'
-import { loadAuthSession, persistAuthSession } from '@/features/auth/authUtils'
+import { isAppError } from '@/services/appError'
 
-const restoredUser = loadAuthSession()
-
-const initialState: AuthState = {
-  isAuthenticated: Boolean(restoredUser),
-  user: restoredUser,
-  status: restoredUser ? 'authenticated' : 'idle',
+export const authInitialState: AuthState = {
+  isAuthenticated: false,
+  user: null,
+  status: 'idle',
   error: null,
   lastRedirectPath: undefined,
 }
@@ -17,8 +15,11 @@ export const loginWithMock = createAsyncThunk<AuthUser, LoginPayload, { rejectVa
   'auth/loginWithMock',
   async (payload, thunkApi) => {
     try {
-      return await mockLogin(payload)
-    } catch {
+      return await signInWithDemoAuth(payload)
+    } catch (error) {
+      if (isAppError(error) && error.kind === 'unavailable') {
+        return thunkApi.rejectWithValue('auth.demoModeOnly')
+      }
       return thunkApi.rejectWithValue('auth.loginFailed')
     }
   },
@@ -28,8 +29,11 @@ export const registerWithMock = createAsyncThunk<AuthUser, RegisterPayload, { re
   'auth/registerWithMock',
   async (payload, thunkApi) => {
     try {
-      return await mockRegister(payload)
-    } catch {
+      return await registerWithDemoAuth(payload)
+    } catch (error) {
+      if (isAppError(error) && error.kind === 'unavailable') {
+        return thunkApi.rejectWithValue('auth.demoModeOnly')
+      }
       return thunkApi.rejectWithValue('auth.registerFailed')
     }
   },
@@ -39,8 +43,11 @@ export const forgotPasswordWithMock = createAsyncThunk<boolean, string, { reject
   'auth/forgotPasswordWithMock',
   async (email, thunkApi) => {
     try {
-      return await mockForgotPassword(email)
-    } catch {
+      return await requestDemoPasswordReset(email)
+    } catch (error) {
+      if (isAppError(error) && error.kind === 'unavailable') {
+        return thunkApi.rejectWithValue('auth.demoModeOnly')
+      }
       return thunkApi.rejectWithValue('auth.forgotPasswordFailed')
     }
   },
@@ -48,7 +55,7 @@ export const forgotPasswordWithMock = createAsyncThunk<boolean, string, { reject
 
 const authSlice = createSlice({
   name: 'auth',
-  initialState,
+  initialState: authInitialState,
   reducers: {
     clearAuthError: (state) => {
       state.error = null
@@ -65,7 +72,6 @@ const authSlice = createSlice({
       state.status = 'idle'
       state.error = null
       state.lastRedirectPath = undefined
-      persistAuthSession(null)
     },
   },
   extraReducers: (builder) => {
@@ -79,7 +85,6 @@ const authSlice = createSlice({
         state.user = action.payload
         state.status = 'authenticated'
         state.error = null
-        persistAuthSession(action.payload)
       })
       .addCase(loginWithMock.rejected, (state, action) => {
         state.status = 'error'
@@ -94,7 +99,6 @@ const authSlice = createSlice({
         state.user = action.payload
         state.status = 'authenticated'
         state.error = null
-        persistAuthSession(action.payload)
       })
       .addCase(registerWithMock.rejected, (state, action) => {
         state.status = 'error'

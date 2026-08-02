@@ -2,7 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { mockCartItems } from './mockCart'
 import type { CartState, ProductCartItem } from './types'
 
-const initialState: CartState = {
+export const cartInitialState: CartState = {
   items: mockCartItems,
   couponCode: null,
   currency: 'USD',
@@ -12,10 +12,10 @@ const initialState: CartState = {
 
 const cartSlice = createSlice({
   name: 'cart',
-  initialState,
+  initialState: cartInitialState,
   reducers: {
     addItem: (state, action: PayloadAction<ProductCartItem>) => {
-      const existing = state.items.find((item) => item.productId === action.payload.productId)
+      const existing = state.items.find((item) => item.id === action.payload.id)
       if (existing) {
         existing.quantity += action.payload.quantity
         existing.quantity = Math.min(existing.quantity, existing.stock)

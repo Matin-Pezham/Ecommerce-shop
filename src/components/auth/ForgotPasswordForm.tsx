@@ -1,45 +1,69 @@
-import { useState } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
 import { AuthFormField } from '@/components/auth/AuthFormField'
+import {
+  createForgotPasswordValidationSchema,
+  type ForgotPasswordFormInput,
+  type ForgotPasswordFormOutput,
+} from '@/features/auth/forgotPasswordValidation'
 import { useTranslation } from '@/i18n'
 
 type ForgotPasswordFormProps = {
   loading: boolean
   successMessage?: string | null
   error?: string | null
-  onSubmit: (email: string) => void
+  onSubmit: (email: string) => void | Promise<void>
 }
 
 export function ForgotPasswordForm({ loading, successMessage, error, onSubmit }: ForgotPasswordFormProps) {
   const { t, isRtl } = useTranslation()
-  const [email, setEmail] = useState('')
-  const [emailError, setEmailError] = useState<string | undefined>()
+  const schema = createForgotPasswordValidationSchema({
+    requiredField: t('auth.requiredField'),
+    invalidEmail: t('auth.invalidEmail'),
+  })
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordFormInput, undefined, ForgotPasswordFormOutput>({
+    resolver: zodResolver(schema),
+    mode: 'onBlur',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      email: '',
+    },
+  })
 
-    if (!email.trim()) {
-      setEmailError(t('auth.requiredField'))
+  const submitForgotPassword = async (values: ForgotPasswordFormOutput) => {
+    if (loading) {
       return
     }
 
-    setEmailError(undefined)
-    onSubmit(email)
+    await onSubmit(values.email)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(submitForgotPassword)} aria-busy={loading ? 'true' : undefined} className="space-y-4">
       <AuthFormField
         id="auth-forgot-email"
         type="email"
         label={t('auth.email')}
-        value={email}
-        error={emailError}
-        onChange={(event) => setEmail(event.target.value)}
+        error={errors.email?.message}
+        {...register('email')}
         autoComplete="email"
       />
 
-      {successMessage ? <p className={`text-sm text-[color:var(--color-success)] ${isRtl ? 'text-right' : ''}`}>{successMessage}</p> : null}
-      {error ? <p className={`text-sm text-[color:var(--color-danger)] ${isRtl ? 'text-right' : ''}`}>{error}</p> : null}
+      {successMessage ? (
+        <p role="status" aria-live="polite" className={`text-sm text-[color:var(--color-success)] ${isRtl ? 'text-right' : ''}`}>
+          {successMessage}
+        </p>
+      ) : null}
+      {error ? (
+        <p role="alert" className={`text-sm text-[color:var(--color-danger)] ${isRtl ? 'text-right' : ''}`}>
+          {error}
+        </p>
+      ) : null}
 
       <button
         type="submit"

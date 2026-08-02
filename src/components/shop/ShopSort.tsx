@@ -6,6 +6,15 @@ type ShopSortProps = {
   onChange: (sort: ProductSort) => void
 }
 
+const isProductSort = (value: string): value is ProductSort => (
+  value === 'featured'
+  || value === 'newest'
+  || value === 'price-asc'
+  || value === 'price-desc'
+  || value === 'rating-desc'
+  || value === 'bestseller'
+)
+
 export function ShopSort({ value, onChange }: ShopSortProps) {
   const { t } = useTranslation()
 
@@ -14,7 +23,11 @@ export function ShopSort({ value, onChange }: ShopSortProps) {
       <span className="whitespace-nowrap font-medium">{t('shop.sortBy')}</span>
       <select
         value={value}
-        onChange={(event) => onChange(event.target.value as ProductSort)}
+        onChange={(event) => {
+          if (isProductSort(event.target.value)) {
+            onChange(event.target.value)
+          }
+        }}
         aria-label={t('shop.sortBy')}
         className="rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-card)] px-3 py-2 text-sm text-[color:var(--color-text-primary)] outline-none transition focus:border-[color:var(--color-primary)]"
       >
@@ -22,7 +35,7 @@ export function ShopSort({ value, onChange }: ShopSortProps) {
         <option value="newest">{t('shop.newest')}</option>
         <option value="price-asc">{t('shop.priceLowToHigh')}</option>
         <option value="price-desc">{t('shop.priceHighToLow')}</option>
-        <option value="rating">{t('shop.bestRated')}</option>
+        <option value="rating-desc">{t('shop.bestRated')}</option>
         <option value="bestseller">{t('shop.bestSelling')}</option>
       </select>
     </label>

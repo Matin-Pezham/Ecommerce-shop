@@ -4,12 +4,11 @@ import {
   clearAllFilters,
   clearFilter,
   createSearchParamsFromFilters,
-  filterProducts,
   getActiveFilterChips,
   getAvailableFilterOptions,
   hasActiveFilters,
+  isResultDefiningFilter,
   parseFiltersFromSearchParams,
-  sortProducts,
 } from '@/features/products/filterUtils'
 import type {
   ActiveFilterKey,
@@ -31,11 +30,6 @@ export function useProductFilters(products: Product[]) {
   const filters = useMemo(() => parseFiltersFromSearchParams(searchParams), [searchParams])
 
   const availableOptions = useMemo(() => getAvailableFilterOptions(products), [products])
-
-  const filteredProducts = useMemo(() => {
-    const list = filterProducts(products, filters, locale)
-    return sortProducts(list, filters.sort)
-  }, [filters, locale, products])
 
   const setFilters = (next: ProductFilters) => {
     setSearchParams(createSearchParamsFromFilters(next))
@@ -60,6 +54,22 @@ export function useProductFilters(products: Product[]) {
       }
     } else {
       next[key] = value
+    }
+
+    if (isResultDefiningFilter(key)) {
+      delete next.page
+    }
+
+    setFilters(next)
+  }
+
+  const setPage = (page: number) => {
+    const next: ProductFilters = { ...filters }
+
+    if (page <= 1) {
+      delete next.page
+    } else {
+      next.page = page
     }
 
     setFilters(next)
@@ -107,7 +117,7 @@ export function useProductFilters(products: Product[]) {
     newest: t('shop.newest'),
     'price-asc': t('shop.priceLowToHigh'),
     'price-desc': t('shop.priceHighToLow'),
-    rating: t('shop.bestRated'),
+    'rating-desc': t('shop.bestRated'),
     bestseller: t('shop.bestSelling'),
   }
 
@@ -125,11 +135,11 @@ export function useProductFilters(products: Product[]) {
 
   return {
     filters,
-    filteredProducts,
     availableOptions,
     activeChips,
     hasFilters: hasActiveFilters(filters),
     setFilter,
+    setPage,
     removeFilter,
     resetFilters,
     setFilters,

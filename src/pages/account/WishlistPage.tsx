@@ -1,8 +1,9 @@
 import { AccountHeader } from '@/components/account/AccountHeader'
+import { LoadingState } from '@/components/common/LoadingState'
 import { addItem } from '@/features/cart/cartSlice'
 import { createCartItemFromProduct, getLocalizedText, getProductMainImage } from '@/features/products/productUtils'
 import { removeFromWishlist } from '@/features/wishlist/wishlistSlice'
-import { selectProductById } from '@/features/products/productSelectors'
+import { useProductsQuery } from '@/features/products/queries/useProductsQuery'
 import { useTranslation } from '@/i18n'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 
@@ -10,6 +11,20 @@ export function WishlistPage() {
   const dispatch = useAppDispatch()
   const wishlistItems = useAppSelector((state) => state.wishlist.items)
   const { t, isRtl, formatPrice, locale } = useTranslation()
+  
+  // Fetch only the products in the wishlist
+  const productIds = wishlistItems.map((item) => item.productId)
+  const { data, isPending } = useProductsQuery(
+    productIds.length > 0 ? { productIds, pageSize: productIds.length } : {}
+  )
+
+  if (isPending && !data) {
+    return (
+      <LoadingState label={t('shop.loadingProducts')} />
+    )
+  }
+
+  const products = data?.items ?? []
 
   return (
     <div>
@@ -21,7 +36,7 @@ export function WishlistPage() {
 
       <div className="grid gap-5 md:grid-cols-2">
         {wishlistItems.map((item) => {
-          const product = selectProductById(item.productId)
+          const product = products.find((entry) => entry.id === item.productId)
           if (!product) return null
 
           const image = getProductMainImage(product)
