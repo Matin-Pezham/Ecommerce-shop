@@ -201,9 +201,13 @@ docs/
 Once those two files exist in the repository, add the following Markdown directly below this paragraph:
 
 ```md
-![Ecommerce Shop — desktop view](docs/screenshots/storefront-desktop.png)
-
-![Ecommerce Shop — mobile view](docs/screenshots/storefront-mobile.png)
+![Ecommerce Shop — desktop view](docs/screenshots/storefront-desktop-01.png)
+![Ecommerce Shop — desktop view](docs/screenshots/storefront-desktop-02.png)
+![Ecommerce Shop — desktop view](docs/screenshots/storefront-desktop-03.png)
+![Ecommerce Shop — desktop view](docs/screenshots/storefront-desktop-04.png)
+![Ecommerce Shop — mobile view](docs/screenshots/storefront-mobile-01.png)
+![Ecommerce Shop — mobile view](docs/screenshots/storefront-mobile-02.png)
+![Ecommerce Shop — mobile view](docs/screenshots/storefront-mobile-03.png)
 ```
 
 Do not publish the image references before uploading the files, or GitHub will display broken images. See the project's **Live Demo** for the current interface.
